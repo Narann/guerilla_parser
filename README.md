@@ -1,2 +1,1 @@
-# guerilla_parser
-Python Guerilla file parser
+# Python Guerilla file parser
