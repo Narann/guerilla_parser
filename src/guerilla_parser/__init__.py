@@ -4,3 +4,7 @@ from node import GuerillaNode
 from plug import GuerillaPlug
 
 __version__ = "0.1.0"
+
+
+# move the most useful function on top
+parse = GuerillaParser.from_file
