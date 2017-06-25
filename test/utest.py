@@ -8,14 +8,11 @@ import os.path
 def get_parent_dir(path):
     return os.path.abspath(os.path.join(os.path.abspath(path), os.pardir))
 
-toto = os.path.abspath(os.path.join(
-        os.path.abspath(os.path.join(
-            os.path.abspath(os.path.join(
-                os.path.abspath(__file__), os.pardir)), os.pardir)), os.pardir))
+root = get_parent_dir(get_parent_dir(__file__))
 
 test_dir = get_parent_dir(__file__)
 
-sys.path.append(get_parent_dir(test_dir)+'/src')
+sys.path.append(root+'/src')
 
 from guerilla_parser import GuerillaParser, GuerillaNode
 import guerilla_parser.util as grl_util
