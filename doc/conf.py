@@ -1,9 +1,8 @@
 """Guerilla parser documentation build configuration file"""
 
 import os
-import re
 
-# -- General ------------------------------------------------------------------
+import sphinx_rtd_theme
 
 # Extensions
 extensions = [
@@ -11,8 +10,13 @@ extensions = [
     'sphinx.ext.extlinks',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
-    'lowdown'
+    #'lowdown'
 ]
+
+
+html_theme = "sphinx_rtd_theme"
+
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The suffix of source filenames.
 source_suffix = '.rst'

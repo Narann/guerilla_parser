@@ -5,6 +5,6 @@
 :mod:`guerilla_parser`
 ===============
 
-.. automodule:: guerilla_parser.GuerillaParser
-.. automodule:: guerilla_parser.GuerillaNode
-.. automodule:: guerilla_parser.GuerillaPlug
+.. autoclass:: guerilla_parser.GuerillaParser
+.. automodule:: guerilla_parser.node
+.. automodule:: guerilla_parser.plug
