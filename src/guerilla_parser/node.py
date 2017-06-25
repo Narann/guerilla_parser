@@ -1,4 +1,5 @@
-from exception import ChildError
+from exception import ChildError, PathError
+
 
 class GuerillaNode(object):
     """class representing a parsed Guerilla node"""
@@ -37,6 +38,9 @@ class GuerillaNode(object):
         :return: full node path
         :rtype: `str`
         """
+        if self.id == 1:
+            raise PathError("No path for root node")
+
         # we recursively move from current node to parent node storing node
         # name
         path = []
@@ -44,6 +48,10 @@ class GuerillaNode(object):
         while node is not None:
             path.append(node.name)
             node = node.parent
+
+        # the root should never appear in the path (but we replace it to an
+        # empty string to keep the "|" at the beginning of the returned path
+        path[-1] = ""
 
         return '|'.join(reversed(path))
 

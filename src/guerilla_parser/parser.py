@@ -24,12 +24,6 @@ plug_class_names = {'BakePlug',
 class GuerillaParser(object):
     """Guerilla .gproject file parser"""
 
-    # in Guerilla, main Document node always has oid 1 (lua legacy)
-    DOCUMENT_OID = 1
-
-    # in Guerilla, preferences node id is always 2
-    PREFERENCES_OID = 2
-
     PY_TO_LUA_BOOL = {True: 'true',
                       False: 'false'}
 
@@ -126,8 +120,11 @@ class GuerillaParser(object):
         :return: True if both parser instance have same modified content
         :rtype: `bool`
         """
-
-        return self.__org_content != self.__mod_content
+        # no modified content mean we didn't tried to modified it
+        if self.__mod_content is None:
+            return False
+        else:
+            return self.__org_content != self.__mod_content
 
     @property
     def modified_content(self):
@@ -161,22 +158,13 @@ class GuerillaParser(object):
             f.write(self.modified_content)
 
     @property
-    def document(self):
-        """document node (the root of the gproject)
+    def root(self):
+        """root node (top node of the parsed file)
 
-        :return: document node
+        :return: root node
         :rtype: `GuerillaNode`
         """
-        return self.objs[self.DOCUMENT_OID]
-
-    @property
-    def pref(self):
-        """preferences node
-
-        :return: preferences node
-        :rtype: `GuerillaNode`
-        """
-        return self.objs[self.PREFERENCES_OID]
+        return self.objs[1]
 
     @property
     def doc_format_rev(self):
@@ -194,14 +182,17 @@ class GuerillaParser(object):
 
     @property
     def nodes(self):
-        """iterate over nodes of the gproject file
+        """iterate over nodes of the gproject file (except root node)
 
         :return: generator of nodes of the gproject file
         :rtype: collections.iterator[GuerillaNode]
         """
         for obj in self.objs.itervalues():
 
-            if obj.type in plug_class_names:
+            if obj.type in plug_class_names:  # plug node detected
+                continue
+
+            if obj.id == 1:  # root node detected
                 continue
 
             yield obj
@@ -612,7 +603,7 @@ class GuerillaParser(object):
         """
         # find first node of the path
         if path.startswith('|'):  # "|foo|bar|bee" like
-            cur_node = self.document  # absolute path
+            cur_node = self.root  # absolute path
 
         elif path.startswith('$'):  # "$65|bar|bee"
             oid = int(path[1:path.find('|')])  # id "$65|" -> 65
@@ -730,6 +721,9 @@ class GuerillaParser(object):
                          '\)\n)']
 
             regex_list.append(''.join(regex_str))
+
+            # and of course, don't forget to set the value on the plug object
+            plug.value = value
 
         # the "set(attr1, value1)|set(attr2, value2)|set(attr3, value3)" string
         set_plug_regex = re.compile('|'.join(regex_list))
