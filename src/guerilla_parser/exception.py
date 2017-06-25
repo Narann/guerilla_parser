@@ -1,6 +1,6 @@
-class PathError(Exception):
+class ChildError(Exception):
     pass
 
 
-class ChildError(Exception):
+class PathError(Exception):
     pass

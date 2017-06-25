@@ -750,4 +750,4 @@ class GuerillaParser(object):
             self.__mod_content = self.__org_content
 
         self.__mod_content = set_plug_regex.sub(replace_func,
-                                               self.__mod_content)
+                                                self.__mod_content)
