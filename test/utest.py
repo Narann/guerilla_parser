@@ -1,20 +1,22 @@
+import difflib
+import filecmp
+import os.path
+import sys
+import tempfile
 import unittest
 
-import sys
 
-import os.path
-
-
-def get_parent_dir(path):
+def _get_parent_dir(path):
+    """utility function to get parent dir"""
     return os.path.abspath(os.path.join(os.path.abspath(path), os.pardir))
 
-root = get_parent_dir(get_parent_dir(__file__))
+root = _get_parent_dir(_get_parent_dir(__file__))
 
-test_dir = get_parent_dir(__file__)
+test_dir = _get_parent_dir(__file__)
 
 sys.path.append(root+'/src')
 
-from guerilla_parser import GuerillaParser, GuerillaNode
+import guerilla_parser
 import guerilla_parser.util as grl_util
 
 
@@ -26,18 +28,32 @@ class TestStringMethods(unittest.TestCase):
 
     def test_read(self):
 
-        p = GuerillaParser.from_file(gprojects[1])
+        p = guerilla_parser.parse(gprojects[1])
+
+        self.assertIsInstance(p, guerilla_parser.GuerillaParser)
 
         self.assertEqual(p.doc_format_rev, 19)
-        self.assertEqual(p.document.name, 'LUIDocument')
-        self.assertEqual(p.document.get_plug('InternalDirectLighting').value, True)
-        self.assertEqual(p.document.get_plug('InvertT').value, False)
-        self.assertEqual(p.document.get_plug('LastFrame').value, 50)
-        self.assertEqual(p.document.get_plug('Membership').value, "All")
-        self.assertEqual(p.document.get_plug('CurveWidthShape').value, 1.5)
-        self.assertEqual(p.pref.get_plug('LightAmbient').value, [0, 0, 0, 1])
-        self.assertEqual(p.pref.get_plug('LightSpecular').value, [0.5, 0.5, 0.5, 1])
-        self.assertEqual(p.pref.get_plug('SearchPathTexture').value, "")
+
+        doc = p.root
+
+        self.assertEqual(doc.id, 1)
+        self.assertEqual(doc.name, 'LUIDocument')
+        self.assertEqual(doc.type, 'GADocument')
+        self.assertEqual(doc.get_plug('InternalDirectLighting').value, True)
+        self.assertEqual(doc.get_plug('InvertT').value, False)
+        self.assertEqual(doc.get_plug('LastFrame').value, 50)
+        self.assertEqual(doc.get_plug('Membership').value, "All")
+        self.assertEqual(doc.get_plug('CurveWidthShape').value, 1.5)
+
+        pref = doc.get_child('Preferences')
+
+        self.assertEqual(pref.id, 2)
+        self.assertEqual(pref.name, 'Preferences')
+        self.assertEqual(pref.type, 'Preferences')
+
+        self.assertEqual(pref.get_plug('LightAmbient').value, [0, 0, 0, 1])
+        self.assertEqual(pref.get_plug('LightSpecular').value, [0.5, 0.5, 0.5, 1])
+        self.assertEqual(pref.get_plug('SearchPathTexture').value, "")
 
         for node in p.nodes:
             for child in node.children:
@@ -46,10 +62,14 @@ class TestStringMethods(unittest.TestCase):
             for plug in node.plugs:
                 self.assertIs(node.get_plug(plug.name), plug)
 
+    def test_aov(self):
+        """test render pass render layer and aov particularities"""
+        p = guerilla_parser.parse(gprojects[1])
+
         aov = grl_util.aov_node(p, 'RenderPass', 'Layer', 'Beauty')
 
-        self.assertIsInstance(aov, GuerillaNode)
-        self.assertEqual(aov.path, "LUIDocument|RenderPass|Layer|Input1")
+        self.assertIsInstance(aov, guerilla_parser.GuerillaNode)
+        self.assertEqual(aov.path, "|RenderPass|Layer|Input1")
 
         rp_iter = (n for n in p.nodes if n.type == 'RenderPass')
 
@@ -67,19 +87,47 @@ class TestStringMethods(unittest.TestCase):
 
                     self.assertIs(aov, aov_2)
 
-    def test_toto(self):
-
-        p = GuerillaParser.from_file(
+    def test_path_to_node(self):
+        """check returned path can be used to find node back"""
+        p = guerilla_parser.parse(
             gprojects[0],
             diagnose=False)
 
-        print p.doc_format_rev
-        d = p.document
+        for node in p.nodes:
+            self.assertEqual(node, p.path_to_node(node.path))
 
-        '''for node in p.nodes:
-            print node.path'''
+    def test_raises(self):
+
+        p = guerilla_parser.parse(
+            gprojects[0],
+            diagnose=False)
+
+        root_node = p.root
+
+        with self.assertRaises(guerilla_parser.PathError):
+            root_node.path()
+
+        with self.assertRaises(guerilla_parser.ChildError):
+            root_node.get_child('TAGADAPOUETPOUET')
+
+        with self.assertRaises(guerilla_parser.PathError):
+            p.path_to_node('TAGADAPOUETPOUET')
+
+        with self.assertRaises(guerilla_parser.PathError):
+            grl_util.aov_node(p, 'RenderPass', 'Layer', 'TAGADAPOUETPOUET')
+
+    def test_toto(self):
+
+        p = guerilla_parser.parse(
+            gprojects[0],
+            diagnose=False)
+
+        d = p.root
 
         for node in p.nodes:
+            self.assertEqual(node, p.path_to_node(node.path))
+
+        '''for node in p.nodes:
 
             print node.path
 
@@ -90,37 +138,66 @@ class TestStringMethods(unittest.TestCase):
 
                 # node.out_attr -> [(in_node.in_attr), ...]
                 for out_plug in plug.outputs:
-                    print "{plug.path} -> {out_plug.path}".format(**locals())
+                    print "{plug.path} -> {out_plug.path}".format(**locals())'''
 
-        ###########################################################################
-        # iterate over render pass/layer/aov
-        ###########################################################################
-        # build an iterator over render pass nodes
-        rp_iter = (n for n in p.nodes if n.type == 'RenderPass')
-
-        # iter over render passes
-        for rp in rp_iter:
-
-            # iter over render layers
-            for rl in rp.children:
-
-                # iter over aovs
-                for aov in rl.children:
-                    print aov.path, aov.display_name
 
         '''def print_children(node):
             for child in node.children:
                 print child.path
                 print_children(child)
 
-        for node in p.document.children:
+        for node in p.root.children:
             print node.path
             print_children(node)'''
 
         # p.dump(True)
-        print p.objs.keys()
+        #print p.objs.keys()
         node = p.objs[33]
-        p.set_plug_value([(node.get_plug("ColorMode"), 'divide')])
+        plug = node.get_plug("ColorMode")
+        self.assertEqual(plug.value, 'multiply')
+        p.set_plug_value([(plug, 'divide')])
+        self.assertEqual(plug.value, 'divide')
+
+    def test_write_file(self):
+
+        _, tmp_file = tempfile.mkstemp()
+
+        p = guerilla_parser.parse(
+            gprojects[0],
+            diagnose=False)
+
+        p.write(tmp_file)
+
+        # no change
+        self.assertFalse(p.has_changed)
+        self.assertTrue(filecmp.cmp(gprojects[0], tmp_file))
+
+        node = p.objs[33]
+        plug = node.get_plug("ColorMode")
+        p.set_plug_value([(plug, 'divide')])
+
+        p.write(tmp_file)
+
+        # has changed
+        self.assertTrue(p.has_changed)
+        self.assertFalse(filecmp.cmp(gprojects[0], tmp_file))
+
+        old = []
+        new = []
+        for c in difflib.ndiff(p.original_content, p.modified_content):
+            if c.startswith("- "):
+                old.append(c[2:])
+                continue
+            if c.startswith("+ "):
+                new.append(c[2:])
+                continue
+
+        old = "".join(old)
+        new = "".join(new)
+
+        # no typo here! "i" is just considered has haven't been moved
+        self.assertEqual(old, 'multply')
+        self.assertEqual(new, 'dvide')
 
 
 if __name__ == '__main__':
