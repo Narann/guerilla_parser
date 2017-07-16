@@ -1,0 +1,36 @@
+# Notes
+
+## Get every class of type Plug
+
+As we are outside guerilla when parsing, we have to know the classes inherited
+of `Plug`. To do this, we execute and get the returned list of class from this
+code snippet:
+
+```python
+import inspect
+import guerilla
+
+for att in dir(guerilla):
+    cl = getattr(guerilla, att)
+    if not inspect.isclass(cl):
+        continue
+    if issubclass(cl, guerilla.Plug):
+        print cl.__name__
+```
+
+This list of class is then put inside global variable `plug_class_names`.
+
+## What are implicit nodes?
+
+When Guerilla need to do a relation/modification to a node which is inside a
+reference (alembic file for example), he can do a simple
+`set("$20.Plug",true)` as the node having the plug (here $20) is not
+inside the gproject but inside the reference.
+
+That's why, sometime, Guerilla has to do `set("$19|Foo|Bar.Plug",true)`.
+
+When we parse the file, we have no direct wayt to know what `Foo` and `Bar` are
+so we create those nodes to don't break the hierarchy with the type 'UNKNOWN'.
+
+Inside the parser code, those are called 'implicit nodes'.
+
