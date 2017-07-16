@@ -38,7 +38,7 @@ class GuerillaParser(object):
     # per command argument regex
     CMD_CREATE_ARG_PARSE = re.compile(
         '"(?P<type>[a-zA-Z0-9]+)",'
-        '"(?P<parent>[^,\n]+)",'
+        '"(?P<parent>[^,\n]*)",'
         '(("(?P<name>.+?)")|(?P<name_number>\d+?))?'
         '(?P<rest>.*)')
 
@@ -226,7 +226,7 @@ class GuerillaParser(object):
                 if name is None:
                     name = match_arg.group('name_number')
 
-                if parent == r'\"\"':  # it's the GADocument
+                if parent in (r'\"\"', ''):  # GADocument or root
                     parent = None
                 else:
                     assert parent[0] == '$', parent
