@@ -1,11 +1,14 @@
 language: python
 
+git:
+  depth: 3
+
 python:
   - "2.7"
   - "nightly"
 
 # install: "pip install -r requirements.txt"
 
-script: $TRAVIS_BUILD_DIR/test/utest.py
+script: python $TRAVIS_BUILD_DIR/test/utest.py
 
 
