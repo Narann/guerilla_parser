@@ -7,10 +7,7 @@ import sphinx_rtd_theme
 # Extensions
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.extlinks',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.viewcode',
-    #'lowdown'
+    'sphinx.ext.viewcode'
 ]
 
 
@@ -44,15 +41,14 @@ pygments_style = 'sphinx'
 # A list of prefixes to ignore for module listings
 modindex_common_prefix = ['guerilla_parser.']
 
+# coding highlight
+highlight_language = 'python'
 
-# -- HTML output --------------------------------------------------------------
-
-# If True, copy source rst files to output for reference
+# copy rst source files to output for reference
 html_copy_source = True
 
 
-# -- Autodoc ------------------------------------------------------------------
-
+# autodoc
 autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
 autodoc_member_order = 'bysource'
 
@@ -63,14 +59,6 @@ def autodoc_skip(app, what, name, obj, skip, options):
         return False
 
     return skip
-
-
-# -- Intersphinx --------------------------------------------------------------
-
-intersphinx_mapping = {'python':('http://docs.python.org/', None)}
-
-
-# -- Setup --------------------------------------------------------------------
 
 def setup(app):
     app.connect('autodoc-skip-member', autodoc_skip)

@@ -198,7 +198,7 @@ class GuerillaParser(object):
             yield obj
 
     def __parse_nodes(self):
-        """
+        """parse commands in Guerilla file
         """
         self.objs = {}
 
@@ -336,7 +336,7 @@ class GuerillaParser(object):
                     # output is in the form "$64", an expression node
                     print (out_node.type, out_node.path, '->',
                            in_node.type, in_node.path, in_plug_name)
-                    # TODO: support when output is $64 like
+                    # TODO: support when output is $64-like
                     continue
 
                 assert in_plug_name is not None
