@@ -1,4 +1,4 @@
-from exception import ChildError, PathError
+from .exception import ChildError, PathError
 
 
 class GuerillaNode(object):

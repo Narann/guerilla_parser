@@ -1,9 +1,9 @@
 import math
 import re
 
-from exception import PathError
-from node import GuerillaNode
-from plug import GuerillaPlug
+from .exception import PathError
+from .node import GuerillaNode
+from .plug import GuerillaPlug
 
 
 # use to print missing implementation of python to lua value conversion
