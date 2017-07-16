@@ -1,5 +1,7 @@
 # Python Guerilla file parser
 
+[![Build Status](https://travis-ci.org/Narann/guerilla_parser.svg?branch=master)](https://travis-ci.org/Narann/guerilla_parser)
+
 This python module provide an easy way to parse Guerilla files (only _.gproject_ files for now) and navigate into parsed nodes and plugs.
 
 ## Code snippets
