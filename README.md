@@ -2,6 +2,8 @@
 
 This python module provide an easy way to parse Guerilla files (only _.gproject_ files for now) and navigate into parsed nodes and plugs.
 
+## Code snippets
+
 Parse given file:
 ```python
 import guerilla_parser
@@ -96,3 +98,11 @@ Get node from it's path:
 ```python
 rp = p.path_to_node('|RenderPass')
 ```
+
+## Known limitations
+
+Missing lua to python conversion `'{}'`
+Missing lua to python conversion `'types.color'`
+Missing lua to python conversion `'types.float {min=1,max=10}'`
+Missing lua to python conversion `'matrix.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`
+Missing lua to python conversion `'transform.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`
