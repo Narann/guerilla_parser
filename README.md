@@ -7,6 +7,7 @@ This python module provide an easy way to parse Guerilla files (only _.gproject_
 ## Code snippets
 
 Parse given file:
+
 ```python
 import guerilla_parser
 
@@ -15,38 +16,49 @@ p = guerilla_parser.parse("/path/to/my_project.gproject")
 ```
 
 Print the document revision format:
+
 ```python
 print p.doc_format_rev
 # 19
 ```
 
 Iterate over every node of the parsed file:
+
 ```python
 for node in p.nodes:
     print node.path, node.type
 ```
 
 Get root node:
+
 ```python
-node = p.root
+# root node is the document node if you are parsing a gproject
+doc = p.root
+
+print doc.get_plug('FirstFrame').value
+print doc.get_plug('LastFrame').value
 ```
 
 Get node name, path and type:
+
 ```python
 print node.name, node.path, node.type
 ```
 
 Get parent node:
+
 ```python
 print node.parent
 ```
 
 Get node display name (useful for aov nodes):
+
 ```python
 print node.display_name
 ```
 
 Iterate over every children of a node:
+
 ```python
 for child in node.children:
 
@@ -54,11 +66,13 @@ for child in node.children:
 ```
 
 Get node children by its name:
+
 ```python
 node.get_child("RenderPass")
 ```
 
 Iterate over render passes, render ayers and aovs:
+
 ```python
 rp_iter = (n for n in p.nodes if n.type == 'RenderPass')
 
@@ -76,6 +90,7 @@ for rp in rp_iter:
 ```
 
 Iterate over every plug of a node:
+
 ```python
 for plug in node.plugs:
 
@@ -92,11 +107,13 @@ for plug in node.plugs:
 ```
 
 Get specified plug (from its _PlugName_ attribute):
+
 ```python
 node.get_plug('NodePos')
 ```
 
 Get node from it's path:
+
 ```python
 rp = p.path_to_node('|RenderPass')
 ```
