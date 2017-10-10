@@ -294,7 +294,7 @@ class GuerillaParser(object):
                 path = match_arg.group('path')
                 plug_name = match_arg.group('plug')
                 org_value = match_arg.group('value')
-                
+
                 value = self.lua_to_py_value(org_value)
 
                 node = self.objs[oid]
@@ -318,7 +318,7 @@ class GuerillaParser(object):
                 in_oid = int(match_arg.group('in_id'))
                 in_path = match_arg.group('in_path')
                 in_plug_name = match_arg.group('in_plug')
-                
+
                 out_oid = int(match_arg.group('out_id'))
                 out_path = match_arg.group('out_path')
                 out_plug_name = match_arg.group('out_plug')
@@ -343,17 +343,17 @@ class GuerillaParser(object):
 
                 assert in_plug_name is not None
                 assert out_plug_name is not None
-                
+
                 try:
                     in_plug = in_node.plug_dict[in_plug_name]
                 except KeyError:
                     in_plug = GuerillaPlug(in_plug_name, 'Plug', in_node)
-                
+
                 try:
                     out_plug = out_node.plug_dict[out_plug_name]
                 except KeyError:
                     out_plug = GuerillaPlug(out_plug_name, 'Plug', out_node)
-                    
+
                 assert out_plug.name not in [p.name for p in out_plug.outputs]
                 assert in_plug.input is None, in_plug_name
 
@@ -460,7 +460,7 @@ class GuerillaParser(object):
     @staticmethod
     def lua_to_py_value(raw_str):
         """convert given guerilla lua `raw_str` value expression to python
-        
+
         :param raw_str: raw string representing lua value to convert to python
         :type raw_str: `str`
         :return: value converted from lua to python

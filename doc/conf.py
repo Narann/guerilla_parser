@@ -60,6 +60,7 @@ def autodoc_skip(app, what, name, obj, skip, options):
 
     return skip
 
+
 def setup(app):
     app.connect('autodoc-skip-member', autodoc_skip)
 
