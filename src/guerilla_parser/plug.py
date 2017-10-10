@@ -1,7 +1,22 @@
 
 class GuerillaPlug(object):
-    """class representing a parsed Guerilla plug"""
+    """class representing a parsed Guerilla plug
 
+    :ivar name: plug name
+    :type name: str
+    :ivar type: plug type (often 'Plug')
+    :type type: str
+    :ivar parent: plug parent node
+    :type parent: GuerillaNode
+    :ivar value: plug value
+    :type value: bool|float|str
+    :ivar org_value: original parser plug value
+    :type org_value: str
+    :ivar input: plug input
+    :type input: GuerillaPlug
+    :ivar outputs: plug outputs
+    :type outputs: list[GuerillaPlug]
+    """
     def __init__(self, name, type_, parent, value=None, flag=None,
                  org_value=None):
         """init plug
@@ -25,10 +40,8 @@ class GuerillaPlug(object):
         self.org_value = org_value
 
         self.input = None
-        """:type: GuerillaPlug"""
 
         self.outputs = []
-        """:type: list[GuerillaPlug]"""
 
         # add current node to given parent
         if self.parent is not None:

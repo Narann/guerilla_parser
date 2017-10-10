@@ -22,8 +22,13 @@ plug_class_names = {'BakePlug',
 
 
 class GuerillaParser(object):
-    """Guerilla .gproject file parser"""
+    """Guerilla .gproject file parser
 
+    :ivar objs: Guerilla "object" per id (parsed in "oid[<id>]")
+    :type objs: dict[int, GuerillaNode|GuerillaPlug]
+    :ivar diagnose: diagnose mode
+    :type diagnose: bool
+    """
     PY_TO_LUA_BOOL = {True: 'true',
                       False: 'false'}
 
@@ -74,14 +79,11 @@ class GuerillaParser(object):
         self.__doc_format_rev = None
 
         self.objs = {}
-        """Guerilla "object" per id (parsed in "oid[<id>]")
-        :type: dict[int, GuerillaNode|GuerillaPlug]"""
 
         self.__implicit_nodes = set()
         """:type: set[GuerillaNode]"""
 
         self.diagnose = diagnose
-        """:type: bool"""
 
         self.__parse_nodes()
 

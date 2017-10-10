@@ -2,8 +2,21 @@ from .exception import ChildError, PathError
 
 
 class GuerillaNode(object):
-    """class representing a parsed Guerilla node"""
+    """class representing a parsed Guerilla node
 
+    :ivar id: node id (value in "oid[<id>]=")
+    :type id: int
+    :ivar name: node name
+    :type name: str
+    :ivar type: node type
+    :type type: str
+    :ivar parent: node parent
+    :type parent: GuerillaNode
+    :ivar children: node children
+    :type children: list[GuerillaNode]
+    :ivar plug_dict: node plug by name
+    :type plug_dict: dict[str, GuerillaPlug]
+    """
     def __init__(self, id_, name, type_, parent=None):
         """init node
 
@@ -22,10 +35,8 @@ class GuerillaNode(object):
         self.parent = parent
 
         self.children = []
-        """:type: list[GuerillaNode]"""
 
         self.plug_dict = {}
-        """:type: dict[str, GuerillaPlug]"""
 
         # add current node to given parent
         if self.parent is not None:
