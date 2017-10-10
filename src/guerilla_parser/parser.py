@@ -49,20 +49,22 @@ class GuerillaParser(object):
 
     CREATE_PLUG_REST_PARSE = re.compile(
         '^,(?P<flag>\d+),'
-        'types\.(?P<type>[a-z]+)( (?P<param>{.*}))?,'
+        '(?P<type>[a-zA-Z0-9.]+)( (?P<param>{.*}))?,'
         '(?P<value>.*)$')
 
     CMD_SET_ARG_PARSE = re.compile(
-        '"\$(?P<id>\d+)(?P<path>[|\w]+)?\.(?P<plug>\w+)",'
+        '"\$(?P<id>\d+)(?P<path>[|:\w]+)?\.(?P<plug>\w+)",'
         '(?P<value>.+)')
 
     CMD_CONNECT_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>[|\w]+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>[|\w]+)?\.(?P<out_plug>\w+))?"')
+        '"\$(?P<in_id>\d+)((?P<in_path>[|:\w]+)?\.(?P<in_plug>\w+))?",'
+        '"\$(?P<out_id>\d+)((?P<out_path>[|:\w]+)?\.(?P<out_plug>\w+))?"')
 
     CMD_DEPEND_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>[|\w]+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>[|\w]+)?\.(?P<out_plug>\w+))?"')
+        '"\$(?P<in_id>\d+)((?P<in_path>[|:\w]+)?\.(?P<in_plug>\w+))?",'
+        '"\$(?P<out_id>\d+)((?P<out_path>[|:\w]+)?\.(?P<out_plug>\w+))?"')
+
+    PARENT_PARSE = re.compile("\$(?P<id>\d+)(?P<path>[|:\w]+)?")
 
     def __init__(self, content, diagnose=False):
 
@@ -231,9 +233,15 @@ class GuerillaParser(object):
                 if parent in (r'\"\"', ''):  # GADocument or root
                     parent = None
                 else:
-                    assert parent[0] == '$', parent
-                    parent_id = int(parent[1:])
+                    parent_match_grp = self.PARENT_PARSE.match(parent)
+                    parent_id = int(parent_match_grp.group('id'))
+                    parent_path = parent_match_grp.group('path')
+
                     parent = self.objs[parent_id]
+
+                    if parent_path:
+                        node = self.__create_and_get_implicit_node(parent,
+                                                                   parent_path)
 
                 if type_ in plug_class_names:
                     ###########################################################
@@ -249,13 +257,13 @@ class GuerillaParser(object):
                     value = match_rest.group('value')
 
                     # convert value to python type
-                    if plug_type == 'string':
+                    if plug_type == 'types.string':
                         value = str(value)
-                    elif plug_type == 'int':
+                    elif plug_type == 'types.int':
                         value = int(value)
-                    elif plug_type in {'float', 'angle'}:
+                    elif plug_type in {'types.float', 'types.angle'}:
                         value = float(value)
-                    elif plug_type in 'color':
+                    elif plug_type in 'types.color':
                         # "{1,0.5,0.5}" to [1,0.5,0.5]
                         value = eval(value.replace('{', '[').replace('}', ']'))
 
@@ -340,6 +348,17 @@ class GuerillaParser(object):
                            in_node.type, in_node.path, in_plug_name)
                     # TODO: support when output is $64-like
                     continue
+
+                # document is referencing a plug by its id, this mean a plug
+                # node has been created in the gproject so we "offset" the
+                # hierarchy to be consistent with the rest.
+                if in_plug_name is None:
+                    in_plug_name = in_node.name
+                    in_node = in_node.parent
+
+                if out_plug_name is None:
+                    out_plug_name = out_node.name
+                    out_node = out_node.parent
 
                 assert in_plug_name is not None
                 assert out_plug_name is not None
