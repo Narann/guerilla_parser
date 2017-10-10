@@ -33,6 +33,7 @@ gprojects = [test_dir+'/gproject/1.4.13_01/1.4.13_01.gproject',
              test_dir+'/gproject/2.0.0a31_01/2.0.0a31_01.gproject']
 
 all_gfiles = [f for f in default_gprojects]
+all_gfiles += [f for f in gprojects]
 all_gfiles += [f for f in default_glayers]
 all_gfiles += [f for f in default_grendergraphs]
 
@@ -237,6 +238,7 @@ class TestStringMethods(unittest.TestCase):
         for gproject in default_gprojects:
 
             _, tmp_file = tempfile.mkstemp()
+            os.close(_)
 
             p = guerilla_parser.parse(
                 gproject,
@@ -259,6 +261,7 @@ class TestStringMethods(unittest.TestCase):
             self.assertTrue(p.has_changed)
             self.assertFalse(filecmp.cmp(gproject, tmp_file))
 
+            # get diff
             old = []
             new = []
             for c in difflib.ndiff(p.original_content, p.modified_content):
