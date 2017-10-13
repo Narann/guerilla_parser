@@ -1,6 +1,12 @@
 """Guerilla parser documentation build configuration file"""
 
-import os
+import os.path
+import sys
+
+_repo_path = os.path.split(__file__)[0]
+sys.path.append(os.path.join(_repo_path, 'src'))
+
+import guerilla_parser
 
 import sphinx_rtd_theme
 
@@ -26,8 +32,6 @@ project = u'Guerilla parser'
 copyright = u'2016, Dorian Fevrier'
 
 # Version
-import guerilla_parser
-
 version = guerilla_parser.__version__
 release = version
 
