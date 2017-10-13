@@ -3,7 +3,8 @@
 import os.path
 import sys
 
-_repo_path = os.path.split(__file__)[0]
+_doc_path = os.path.split(__file__)[0]
+_repo_path = os.path.split(_doc_path)[0]
 sys.path.append(os.path.join(_repo_path, 'src'))
 
 import guerilla_parser
