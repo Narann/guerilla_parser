@@ -1,6 +1,7 @@
 # Python Guerilla file parser
 
 [![Build Status](https://travis-ci.org/Narann/guerilla_parser.svg?branch=master)](https://travis-ci.org/Narann/guerilla_parser)
+[![Documentation Status](https://readthedocs.org/projects/guerilla-parser/badge/?version=latest)](https://readthedocs.org/projects/guerilla-parser/?badge=latest)
 
 This python module provide an easy way to parse Guerilla files (only _.gproject_ files for now) and navigate into parsed nodes and plugs.
 
@@ -81,11 +82,11 @@ for rp in rp_iter:
     rl_iter = (n for n in rp.children if n.type == 'RenderLayer')
 
     for rl in rl_iter:
-    
+
         aov_iter = (n for n in rp.children if n.type == 'LayerOut')
 
         for aov in aov_iter:
-        
+
             print aov.path, aov.display_name
 ```
 
