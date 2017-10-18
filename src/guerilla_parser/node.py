@@ -2,32 +2,32 @@ from .exception import ChildError, PathError
 
 
 class GuerillaNode(object):
-    """class representing a parsed Guerilla node
+    """Class representing a parsed Guerilla node.
 
-    :ivar id: node id (value in "oid[<id>]=")
+    :ivar id: Node id (value in parsed expression ``oid[<id>]=``).
     :type id: int
-    :ivar name: node name
+    :ivar name: Node name.
     :type name: str
-    :ivar type: node type
+    :ivar type: Node type.
     :type type: str
-    :ivar parent: node parent
-    :type parent: GuerillaNode
-    :ivar children: node children
-    :type children: list[GuerillaNode]
-    :ivar plug_dict: node plug by name
-    :type plug_dict: dict[str, GuerillaPlug]
+    :ivar parent: Node parent.
+    :type parent: :class:`GuerillaNode`
+    :ivar children: Node children.
+    :type children: list[:class:`GuerillaNode`]
+    :ivar plug_dict: Node plug by name.
+    :type plug_dict: dict[str, :class:`GuerillaPlug`]
     """
     def __init__(self, id_, name, type_, parent=None):
-        """init node
+        """Init node.
 
-        :param id_: value in "oid[<id>]="
-        :type id_: `int`
-        :param name: node name
-        :type name: `str`
-        :param type_: node type
-        :type type_: `str`
-        :param parent: node parent
-        :type parent: `GuerillaNode`
+        :param id_: Value in parsed expression ``oid[<id>]=``.
+        :type id_: int
+        :param name: Node name.
+        :type name: str
+        :param type_: Node type.
+        :type type_: str
+        :param parent: Node parent.
+        :type parent: :class:`GuerillaNode`
         """
         self.id = id_
         self.name = name
@@ -44,10 +44,11 @@ class GuerillaNode(object):
 
     @property
     def path(self):
-        """full node path
+        """Full node path.
 
-        :return: full node path
-        :rtype: `str`
+        :return: Full node path.
+        :rtype: str
+        :raise PathError: When node is root.
         """
         if self.id == 1:
             raise PathError("No path for root node")
@@ -68,14 +69,14 @@ class GuerillaNode(object):
 
     @property
     def display_name(self):
-        """node name shown in UI
+        """Node name shown in UI.
 
         Some nodes (render graph plugs, aovs, etc.) have a distinction between
         internal name and UI display name. This property return UI name (aka
         PlugName attribute) if available.
 
-        :return: node name shown in UI
-        :rtype: `str`
+        :return: Node name shown in UI.
+        :rtype: str
         """
         try:
             return self.plug_dict['PlugName'].value
@@ -84,21 +85,21 @@ class GuerillaNode(object):
 
     @property
     def plugs(self):
-        """iterator over node plugs
+        """Iterator over node plugs.
 
-        :return: iterator over node plugs
-        :rtype: `collection.iterator[GuerillaPlug]`
+        :return: Iterator over node plugs.
+        :rtype: collection.iterator[:class:`GuerillaPlug`]
         """
         for plug in self.plug_dict.itervalues():
             yield plug
 
     def get_child(self, name):
-        """return child node with given `name`
+        """Return child node with given `name`.
 
-        :param name: name of the child node to return
-        :return: child node with given `name`
-        :rtype: `GuerillaNode`
-        :raise: `KeyError` if no child node with given `name` is found
+        :param name: Name of the child node to return.
+        :return: Child node with given `name`.
+        :rtype: :class:`GuerillaNode`
+        :raise KeyError: When no child node with given `name` is found.
         """
         for n in self.children:
             if n.name == name:
@@ -107,11 +108,11 @@ class GuerillaNode(object):
         raise ChildError("Can't find child node '{name}'".format(**locals()))
 
     def get_plug(self, name):
-        """return plug with given `name`
+        """Return plug with given `name`.
 
-        :param name: name of the plug to return
-        :return: plug with given `name`
-        :rtype: `GuerillaPlug`
-        :raise: `KeyError` if no plug with given name is found
+        :param name: Name of the plug to return.
+        :return: Plug with given `name`.
+        :rtype: :class:`GuerillaPlug`
+        :raise KeyError: When no plug with given name is found
         """
         return self.plug_dict[name]

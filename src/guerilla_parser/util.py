@@ -38,11 +38,11 @@ def aov_node(parser, rp_name, rl_name, aov_name):
     :param parser: guerilla parser
     :type parser: `GuerillaParser`
     :param rp_name: render pass name
-    :type rp_name: `str`
+    :type rp_name: str
     :param rl_name: render layer name
-    :type rl_name: `str`
+    :type rl_name: str
     :param aov_name: aov name
-    :type aov_name: `str`
+    :type aov_name: str
     :return: aov node matching given path
     :rtype: `GuerillaNode`
     :raise: `PathError` if given info doesn't match any or more than one

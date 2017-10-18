@@ -14,6 +14,7 @@ import sphinx_rtd_theme
 # Extensions
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode'
 ]
 
@@ -56,6 +57,9 @@ html_copy_source = True
 # autodoc
 autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
 autodoc_member_order = 'bysource'
+
+# intersphinx
+intersphinx_mapping = {'python': ('https://docs.python.org/2', None)}
 
 
 def autodoc_skip(app, what, name, obj, skip, options):

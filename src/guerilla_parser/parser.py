@@ -108,7 +108,7 @@ class GuerillaParser(object):
         """construct parser reading given file `path` content
 
         :param path: .gproject file path
-        :type path: `str`
+        :type path: str
         :return: parser filled with content of given `path`
         :rtype: `GuerillaParser`
         """
@@ -135,7 +135,7 @@ class GuerillaParser(object):
         """modified parsed gproject content
 
         :return: modified parsed gproject content
-        :rtype: `str`
+        :rtype: str
         """
         if self.__mod_content is None:
             return self.__org_content
@@ -148,7 +148,7 @@ class GuerillaParser(object):
         """original (unmodified) parsed gproject content
 
         :return: original (unmodified) parsed gproject content
-        :rtype: `str`
+        :rtype: str
         """
         return self.__org_content
 
@@ -156,7 +156,7 @@ class GuerillaParser(object):
         """write modified content to given file `path`
 
         :param path: .gproject file path
-        :type path: `str`
+        :type path: str
         """
         with open(path, 'w') as f:
             f.write(self.modified_content)
@@ -465,7 +465,7 @@ class GuerillaParser(object):
         "{foo=1,bar=2}" -> {'foo': 1, 'bar': 2}
 
         :param lua_dict_str: lua table representation to convert in python
-        :type lua_dict_str: `str`
+        :type lua_dict_str: str
         :return: lua table representation converted to python dict
         :rtype: `dict`
         """
@@ -481,7 +481,7 @@ class GuerillaParser(object):
         """convert given guerilla lua `raw_str` value expression to python
 
         :param raw_str: raw string representing lua value to convert to python
-        :type raw_str: `str`
+        :type raw_str: str
         :return: value converted from lua to python
         :rtype: bool|float|list[float]|str
         """
@@ -616,7 +616,7 @@ class GuerillaParser(object):
         "$65|bar|bee" will return "bee" node.
 
         :param path: path to get node of
-        :type path: `str`
+        :type path: str
         :return: node found from given `path`
         :rtype: `GuerillaNode`
         :raise: `PathError` if root node can't be found
@@ -681,7 +681,7 @@ class GuerillaParser(object):
         """escape given string `value` to make it parsed in regex
 
         :param value: string to espace for regex
-        :type value: `str`
+        :type value: str
         :return: escaped string
         """
         return value.replace('\\', '\\\\')\

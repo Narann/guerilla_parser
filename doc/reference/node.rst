@@ -8,4 +8,6 @@ Guerilla Node class
 API reference providing details on the actual code.
 
 .. autoclass:: guerilla_parser.GuerillaNode
+    :members:
+    :undoc-members:
     :exclude-members: __init__
