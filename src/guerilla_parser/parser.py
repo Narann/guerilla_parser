@@ -349,6 +349,13 @@ class GuerillaParser(object):
                     # TODO: support when output is $64-like
                     continue
 
+                if not in_path and not in_plug_name:
+                    # same here for inputs
+                    print (in_node.type, in_node.path, '->',
+                           in_node.type, in_node.path, in_plug_name)
+                    # TODO: support when input is $64-like
+                    continue
+
                 # document is referencing a plug by its id, this mean a plug
                 # node has been created in the gproject so we "offset" the
                 # hierarchy to be consistent with the rest.
