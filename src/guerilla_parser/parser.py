@@ -53,7 +53,7 @@ class GuerillaParser(object):
         '(?P<value>.*)$')
 
     CMD_SET_ARG_PARSE = re.compile(
-        '"\$(?P<id>\d+)(?P<path>[|:\w]+)?\.(?P<plug>\w+)",'
+        '"\$(?P<id>\d+)(?P<path>[|:\w,]+)?\.(?P<plug>\w+)",'
         '(?P<value>.+)')
 
     CMD_CONNECT_ARG_PARSE = re.compile(
@@ -86,6 +86,14 @@ class GuerillaParser(object):
         """:type: set[GuerillaNode]"""
 
         self.diagnose = diagnose
+
+        # __create_and_get_implicit_node() do a huge amount of calls to
+        # GuerillaNode.path property, we have to cache its result for
+        # performance purpose.
+        # implicit nodes are "$44|foo|bar"
+        # key is (source node, path) where source node is the GuerillaNode
+        # representing $44 and path is "|foo|bar".
+        self.__implicit_node_cache = {}
 
         self.__parse_nodes()
 
@@ -440,29 +448,30 @@ class GuerillaParser(object):
         :param path:
         :return:
         """
-        # generate the whole path of the implicit node
-        implicit_node_path = start_node.path + path
+        try:
+            # get in the cache first
+            implicit_node = self.__implicit_node_cache[(start_node, path)]
+        except KeyError:
 
-        # search if implicit node already exists
-        for implicit_node in self.__implicit_nodes:
+            # no implicit node found? create it along its path!
+            cur_parent = start_node
 
-            if implicit_node.path == implicit_node_path:
+            for implicit_node_name in path.split('|')[1:]:
 
-                return implicit_node
+                implicit_node = GuerillaNode(-1, implicit_node_name, 'UNKNOWN',
+                                             cur_parent)
 
-        # no implicit node found? create it!
-        cur_parent = start_node
+                self.__implicit_nodes.add(implicit_node)
 
-        for implicit_node_name in path.split('|')[1:]:
+                cur_parent = implicit_node
 
-            implicit_node = GuerillaNode(-1, implicit_node_name, 'UNKNOWN',
-                                         cur_parent)
+            # we now have our implicit node
+            implicit_node = cur_parent
 
-            self.__implicit_nodes.add(implicit_node)
+            # store it in the cache
+            self.__implicit_node_cache[(start_node, path)] = implicit_node
 
-            cur_parent = implicit_node
-
-        return cur_parent
+        return implicit_node
 
     @staticmethod
     def __lua_dict_to_python(lua_dict_str):

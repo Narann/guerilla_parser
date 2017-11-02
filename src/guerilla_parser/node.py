@@ -42,6 +42,11 @@ class GuerillaNode(object):
         if self.parent is not None:
             self.parent.children.append(self)
 
+        # cache path for performance purpose. __create_and_get_implicit_node()
+        # do intensive GuerillaNode.path property call so we cache path once
+        # we have generated once
+        self.__path_cache = None
+
     @property
     def path(self):
         """Full node path.
@@ -53,21 +58,25 @@ class GuerillaNode(object):
         if self.id == 1:
             raise PathError("No path for root node")
 
-        # we recursively move from current node to parent node storing node
-        # name
-        path = []
-        node = self
-        while node is not None:
-            # some nodes can be named "foo|bar" so we have to escape "|" from
-            # their names.
-            path.append(node.name.replace("|", "\\|"))
-            node = node.parent
+        if self.__path_cache is None:
 
-        # the root should never appear in the path (but we replace it to an
-        # empty string to keep the "|" at the beginning of the returned path
-        path[-1] = ""
+            # we recursively move from current node to parent node storing node
+            # name
+            path = []
+            node = self
+            while node is not None:
+                # some nodes can be named "foo|bar" so we have to escape "|"
+                # from their names.
+                path.append(node.name.replace("|", "\\|"))
+                node = node.parent
 
-        return '|'.join(reversed(path))
+            # the root should never appear in the path (but we replace it to an
+            # empty string to keep the "|" at the beginning of the returned path
+            path[-1] = ""
+
+            self.__path_cache = '|'.join(reversed(path))
+
+        return self.__path_cache
 
     @property
     def display_name(self):

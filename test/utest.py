@@ -30,6 +30,7 @@ default_grendergraphs = [test_dir+'/gproject/1.4.14_01_default/1.4.14_01_default
                          test_dir+'/gproject/2.0.0a31_02_default/2.0.0a31_02_default.grendergraph']
 
 gprojects = [test_dir+'/gproject/1.4.13_01/1.4.13_01.gproject',
+             test_dir+'/gproject/1.4.19_01_node_name/1.4.19_01.gproject',
              test_dir+'/gproject/2.0.0a31_01/2.0.0a31_01.gproject']
 
 all_gfiles = [f for f in default_gprojects]
