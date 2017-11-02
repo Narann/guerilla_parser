@@ -373,7 +373,6 @@ class GuerillaParser(object):
                 except KeyError:
                     out_plug = GuerillaPlug(out_plug_name, 'Plug', out_node)
 
-                assert out_plug.name not in [p.name for p in out_plug.outputs]
                 assert in_plug.input is None, in_plug_name
 
                 # p1.out -> p2.in

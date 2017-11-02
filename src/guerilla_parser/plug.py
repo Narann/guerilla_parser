@@ -32,6 +32,10 @@ class GuerillaPlug(object):
         :param org_value: original parser plug value
         :type org_value: str
         """
+        assert isinstance(name, basestring), (type(name), name)
+        assert isinstance(type_, basestring), (type(type_), type_)
+        assert parent is not None, (type(parent), parent)
+
         self.name = name
         self.type = type_
         self.parent = parent
@@ -44,8 +48,10 @@ class GuerillaPlug(object):
         self.outputs = []
 
         # add current node to given parent
-        if self.parent is not None:
-            self.parent.plug_dict[name] = self
+        assert name not in self.parent.plug_dict, (name,
+                                                   self.parent.plug_dict)
+
+        self.parent.plug_dict[name] = self
 
     @property
     def path(self):
