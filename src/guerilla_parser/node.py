@@ -58,7 +58,9 @@ class GuerillaNode(object):
         path = []
         node = self
         while node is not None:
-            path.append(node.name)
+            # some nodes can be named "foo|bar" so we have to escape "|" from
+            # their names.
+            path.append(node.name.replace("|", "\\|"))
             node = node.parent
 
         # the root should never appear in the path (but we replace it to an

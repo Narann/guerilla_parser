@@ -636,7 +636,10 @@ class GuerillaParser(object):
         # find node for each name in path:
         # "|foo|bar|bee" -> look for "foo" in document children, then "bar" in
         # "foo" children, etc.
-        for node_name in path.split('|')[1:]:
+        for node_name in re.split(r'(?<!\\)\|', path)[1:]:
+
+            # and we replace "\|" by "|" to find the node
+            node_name = node_name.replace('\\|', '|')
 
             if not node_name:
                 raise PathError("Empty name '{path}'".format(**locals()))
