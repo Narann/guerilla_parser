@@ -16,6 +16,9 @@ Change log
 
 A :doc:`changelog` is available to keep track of modifications. Keep an eye on it when changing versions. Some advices are often provided.
 
+Table of content
+----------------
+
 .. toctree::
     :maxdepth: 2
 
