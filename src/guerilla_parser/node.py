@@ -29,6 +29,11 @@ class GuerillaNode(object):
         :param parent: Node parent.
         :type parent: :class:`GuerillaNode`
         """
+        assert isinstance(id_, int), (type(id_), id_)
+        assert isinstance(name, basestring), (type(name), name)
+        assert isinstance(type_, basestring), (type(type_), type_)
+        assert len(type_), (len(type_), type_)
+
         self.id = id_
         self.name = name
         self.type = type_
@@ -46,6 +51,15 @@ class GuerillaNode(object):
         # do intensive GuerillaNode.path property call so we cache path once
         # we have generated once
         self.__path_cache = None
+
+    def __repr__(self):
+        """
+
+        :return:
+        :rtype: str
+        """
+        return "{}({id}, '{name}', '{type}')".format(type(self).__name__,
+                                                     **vars(self))
 
     @property
     def path(self):

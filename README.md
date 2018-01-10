@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Narann/guerilla_parser.svg?branch=master)](https://travis-ci.org/Narann/guerilla_parser)
 [![Documentation Status](https://readthedocs.org/projects/guerilla-parser/badge/?version=latest)](https://readthedocs.org/projects/guerilla-parser/?badge=latest)
 
-This python module provide an easy way to parse Guerilla files (only _.gproject_ files for now) and navigate into parsed nodes and plugs.
+This python module provide an easy way to parse Guerilla files and navigate into parsed nodes and plugs.
 
 ## Code snippets
 
@@ -121,8 +121,9 @@ rp = p.path_to_node('|RenderPass')
 
 ## Known limitations
 
-Missing lua to python conversion `'{}'`
-Missing lua to python conversion `'types.color'`
-Missing lua to python conversion `'types.float {min=1,max=10}'`
-Missing lua to python conversion `'matrix.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`
-Missing lua to python conversion `'transform.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`
+* Missing lua to python conversion `'{}'`.
+* Missing lua to python conversion `'types.color'`.
+* Missing lua to python conversion `'types.float {min=1,max=10}'`.
+* Missing lua to python conversion `'matrix.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`.
+* Missing lua to python conversion `'transform.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`.
+* Curve unpacking is not supported.

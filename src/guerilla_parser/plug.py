@@ -47,11 +47,20 @@ class GuerillaPlug(object):
 
         self.outputs = []
 
-        # add current node to given parent
+        # add current plug to given parent plugs
         assert name not in self.parent.plug_dict, (name,
                                                    self.parent.plug_dict)
 
         self.parent.plug_dict[name] = self
+
+    def __repr__(self):
+        """
+
+        :return:
+        :rtype: str
+        """
+        return "{}('{name}', '{type}', '{parent.path}')".format(
+            type(self).__name__, **vars(self))
 
     @property
     def path(self):

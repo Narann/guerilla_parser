@@ -53,12 +53,12 @@ class GuerillaParser(object):
         '(?P<value>.*)$')
 
     CMD_SET_ARG_PARSE = re.compile(
-        '"\$(?P<id>\d+)(?P<path>[|:\w,]+)?\.(?P<plug>\w+)",'
+        '"\$(?P<id>\d+)(?P<path>[|:\w\\\\,()+ .*$-]+)?\.(?P<plug>\w+)",'
         '(?P<value>.+)')
 
     CMD_CONNECT_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>[|:\w]+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>[|:\w]+)?\.(?P<out_plug>\w+))?"')
+        '"\$(?P<in_id>\d+)((?P<in_path>[|:\w\\\\]+)?\.(?P<in_plug>\w+))?",'
+        '"\$(?P<out_id>\d+)((?P<out_path>[|:\w\\\\]+)?\.(?P<out_plug>\w+))?"')
 
     CMD_DEPEND_ARG_PARSE = re.compile(
         '"\$(?P<in_id>\d+)((?P<in_path>[|:\w]+)?\.(?P<in_plug>\w+))?",'
@@ -238,6 +238,9 @@ class GuerillaParser(object):
                 if name is None:
                     name = match_arg.group('name_number')
 
+                if name is None:
+                    name = ""
+
                 if parent in (r'\"\"', ''):  # GADocument or root
                     parent = None
                 else:
@@ -248,8 +251,8 @@ class GuerillaParser(object):
                     parent = self.objs[parent_id]
 
                     if parent_path:
-                        node = self.__create_and_get_implicit_node(parent,
-                                                                   parent_path)
+                        parent = self.__create_and_get_implicit_node(parent,
+                                                                     parent_path)
 
                 if type_ in plug_class_names:
                     ###########################################################
@@ -448,30 +451,44 @@ class GuerillaParser(object):
         :param path:
         :return:
         """
+        # get in the cache for full path first
         try:
-            # get in the cache first
-            implicit_node = self.__implicit_node_cache[(start_node, path)]
+            return self.__implicit_node_cache[(start_node, path)]
         except KeyError:
+            pass
 
-            # no implicit node found? create it along its path!
-            cur_parent = start_node
+        # no implicit node found? create it along its path!
+        cur_parent = start_node
 
-            for implicit_node_name in path.split('|')[1:]:
+        # use to store path along iteration
+        cur_path = ""
 
-                implicit_node = GuerillaNode(-1, implicit_node_name, 'UNKNOWN',
-                                             cur_parent)
+        # for  |foo|bar|toto, get-or-create 'foo', then 'bar', then 'toto'
+        for name in path.split('|')[1:]:
+
+            # aggregate current path ('|foo', then '|foo|bar', then
+            # '|foo|bar|toto')
+            cur_path = '|'.join((cur_path, name))
+
+            # get-or-create implicit node
+            try:
+                implicit_node = self.__implicit_node_cache[(start_node,
+                                                            cur_path)]
+            except KeyError:
+
+                implicit_node = GuerillaNode(-1, name, 'UNKNOWN', cur_parent)
 
                 self.__implicit_nodes.add(implicit_node)
 
-                cur_parent = implicit_node
+                # store it in the cache
+                self.__implicit_node_cache[(start_node, cur_path)] = \
+                    implicit_node
 
-            # we now have our implicit node
-            implicit_node = cur_parent
+            # prepare next iteration
+            cur_parent = implicit_node
 
-            # store it in the cache
-            self.__implicit_node_cache[(start_node, path)] = implicit_node
-
-        return implicit_node
+        # we now have our implicit node
+        return cur_parent
 
     @staticmethod
     def __lua_dict_to_python(lua_dict_str):
@@ -655,9 +672,6 @@ class GuerillaParser(object):
 
             # and we replace "\|" by "|" to find the node
             node_name = node_name.replace('\\|', '|')
-
-            if not node_name:
-                raise PathError("Empty name '{path}'".format(**locals()))
 
             for node in cur_node.children:
 
