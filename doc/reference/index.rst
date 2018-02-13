@@ -1,5 +1,5 @@
 ..
-    :copyright: Copyright (c) 2016 Dorian Fevrier
+    :copyright: Copyright (c) 2016-2018 Dorian Fevrier
     :license: See LICENSE file
 
 Reference
@@ -12,5 +12,6 @@ API reference providing details on the actual code.
 
     parser
     node
+    plug
     guerilla_parser/index
 

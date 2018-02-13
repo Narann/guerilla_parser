@@ -15,7 +15,7 @@ root_dir = _get_parent_dir(_get_parent_dir(__file__))
 
 test_dir = _get_parent_dir(__file__)
 
-sys.path.append(root_dir+'/src')
+sys.path.insert(0, root_dir+'/src')
 
 import guerilla_parser
 import guerilla_parser.util as grl_util
@@ -50,6 +50,16 @@ all_gfiles += [f for f in default_grendergraphs]
 # TestSequence: the main empty class
 # test_generator_<test_name> return a function to test given path
 #  '-> test_<test_name> function that run the test
+
+
+def _gen_test_name(name, path):
+    """Macro to properly generate test method name from given test `name` and
+    file `path`
+
+    :return: test name
+    :rtype: str
+    """
+    return 'test_{}_{}'.format(name, path.replace('.', '_'))
 
 
 class TestSequence(unittest.TestCase):
@@ -128,6 +138,12 @@ def test_generator_default_gprojects(path):
     return test_default_gprojects
 
 
+for gproject in default_gprojects:
+    test_name = _gen_test_name('default_gproject', gproject)
+    test = test_generator_default_gprojects(gproject)
+    setattr(TestSequence, test_name, test)
+
+
 def test_generator_default_glayers(path):
     """Generate a function testing given `path`.
 
@@ -151,6 +167,12 @@ def test_generator_default_glayers(path):
         self.assertEqual(root.get_plug('DefaultSurfaceColor').value, [0.0, 0.0, 0.0])
 
     return test_default_glayers
+
+
+for gproject in default_glayers:
+    test_name = _gen_test_name('default_glayers', gproject)
+    test = test_generator_default_glayers(gproject)
+    setattr(TestSequence, test_name, test)
 
 
 def test_generator_aovs(path):
@@ -188,6 +210,12 @@ def test_generator_aovs(path):
     return test_aovs
 
 
+for gproject in default_gprojects:
+    test_name = _gen_test_name('aovs', gproject)
+    test = test_generator_aovs(gproject)
+    setattr(TestSequence, test_name, test)
+
+
 def test_generator_path_to_node(path):
     """Generate a function testing given `path`.
 
@@ -212,6 +240,46 @@ def test_generator_path_to_node(path):
         # print s.getvalue()
 
     return test_path_to_node
+
+
+for gproject in all_gfiles:
+    test_name = _gen_test_name('path_to_node', gproject)
+    test = test_generator_path_to_node(gproject)
+    setattr(TestSequence, test_name, test)
+
+
+def test_generator_nodes(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_nodes(self):
+        """check each node path is unique"""
+        p = guerilla_parser.parse(path, diagnose=False)
+
+        # implicit nodes
+        paths = set()
+
+        for node in p._implicit_nodes:
+            self.assertNotIn(node.path, paths)
+            paths.add(node.path)
+
+        # nodes
+        paths = set()
+
+        for node in p.nodes:
+            print node.path
+            self.assertNotIn(node.path, paths)
+            paths.add(node.path)
+
+    return test_nodes
+
+
+for gproject in all_gfiles:
+    test_name = _gen_test_name('nodes', gproject)
+    test = test_generator_nodes(gproject)
+    setattr(TestSequence, test_name, test)
 
 
 def test_generator_raises(path):
@@ -241,6 +309,12 @@ def test_generator_raises(path):
     return test_raises
 
 
+for gproject in all_gfiles:
+    test_name = _gen_test_name('raises', gproject)
+    test = test_generator_raises(gproject)
+    setattr(TestSequence, test_name, test)
+
+
 def test_generator_child_unique(path):
     """Generate a function testing given `path`.
 
@@ -264,6 +338,12 @@ def test_generator_child_unique(path):
     return test_child_unique
 
 
+for gproject in all_gfiles:
+    test_name = _gen_test_name('child_unique', gproject)
+    test = test_generator_child_unique(gproject)
+    setattr(TestSequence, test_name, test)
+
+
 def test_generator_set_plug_value(path):
     """Generate a function testing given `path`.
 
@@ -282,6 +362,12 @@ def test_generator_set_plug_value(path):
         self.assertEqual(plug.value, 'divide')
 
     return test_set_plug_value
+
+
+for gproject in default_gprojects:
+    test_name = _gen_test_name('set_plug_value', gproject)
+    test = test_generator_set_plug_value(gproject)
+    setattr(TestSequence, test_name, test)
 
 
 def test_generator_write_file(path):
@@ -337,56 +423,6 @@ def test_generator_write_file(path):
         os.remove(tmp_file)
 
     return test_write_file
-
-
-def _gen_test_name(name, path):
-    """Macro to properly generate test method name from given test `name` and
-    file `path`
-
-    :return: test name
-    :rtype: str
-    """
-    return 'test_{}_{}'.format(name, path.replace('.', '_'))
-
-
-for gproject in default_gprojects:
-    test_name = _gen_test_name('default_gproject', gproject)
-    test = test_generator_default_gprojects(gproject)
-    setattr(TestSequence, test_name, test)
-
-for gproject in default_glayers:
-    test_name = _gen_test_name('default_glayers', gproject)
-    test = test_generator_default_glayers(gproject)
-    setattr(TestSequence, test_name, test)
-
-
-for gproject in default_gprojects:
-    test_name = _gen_test_name('aovs', gproject)
-    test = test_generator_aovs(gproject)
-    setattr(TestSequence, test_name, test)
-
-for gproject in all_gfiles:
-    test_name = _gen_test_name('path_to_node', gproject)
-    test = test_generator_path_to_node(gproject)
-    setattr(TestSequence, test_name, test)
-
-
-for gproject in all_gfiles:
-    test_name = _gen_test_name('raises', gproject)
-    test = test_generator_raises(gproject)
-    setattr(TestSequence, test_name, test)
-
-
-for gproject in all_gfiles:
-    test_name = _gen_test_name('child_unique', gproject)
-    test = test_generator_child_unique(gproject)
-    setattr(TestSequence, test_name, test)
-
-
-for gproject in default_gprojects:
-    test_name = _gen_test_name('set_plug_value', gproject)
-    test = test_generator_set_plug_value(gproject)
-    setattr(TestSequence, test_name, test)
 
 
 for gproject in default_gprojects:

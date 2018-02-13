@@ -1,5 +1,5 @@
 ..
-    :copyright: Copyright (c) 2016 Dorian Fevrier
+    :copyright: Copyright (c) 2016-2018 Dorian Fevrier
     :license: See LICENSE file
 
 :mod:`guerilla_parser`

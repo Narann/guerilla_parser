@@ -44,8 +44,8 @@ def aov_node(parser, rp_name, rl_name, aov_name):
     :param aov_name: aov name
     :type aov_name: str
     :return: aov node matching given path
-    :rtype: `GuerillaNode`
-    :raise: `PathError` if given info doesn't match any or more than one
+    :rtype: GuerillaNode
+    :raise: PathError if given info doesn't match any or more than one
     aov node
     """
     # get render layer node
