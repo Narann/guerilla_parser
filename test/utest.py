@@ -14,6 +14,7 @@ def _get_parent_dir(path):
 root_dir = _get_parent_dir(_get_parent_dir(__file__))
 
 test_dir = _get_parent_dir(__file__)
+gproj_dir = os.path.join(test_dir, 'gproject')
 
 sys.path.insert(0, root_dir+'/src')
 
@@ -21,20 +22,21 @@ import guerilla_parser
 import guerilla_parser.util as grl_util
 
 
-default_gprojects = [test_dir+'/gproject/1.4.14_01_default/1.4.14_01_default.gproject',
-                     test_dir+'/gproject/2.0.0a31_02_default/2.0.0a31_02_default.gproject']
+default_gprojects = [gproj_dir+'/1.4.14_01_default/1.4.14_01_default.gproject',
+                     gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.gproject']
 
-default_glayers = [test_dir+'/gproject/1.4.14_01_default/1.4.14_01_default.glayer',
-                   test_dir+'/gproject/2.0.0a31_02_default/2.0.0a31_02_default.glayer']
+default_glayers = [gproj_dir+'/1.4.14_01_default/1.4.14_01_default.glayer',
+                   gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.glayer']
 
-default_grendergraphs = [test_dir+'/gproject/1.4.14_01_default/1.4.14_01_default.grendergraph',
-                         test_dir+'/gproject/2.0.0a31_02_default/2.0.0a31_02_default.grendergraph']
+default_grendergraphs = [gproj_dir+'/1.4.14_01_default/1.4.14_01_default.grendergraph',
+                         gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.grendergraph']
 
-gprojects = [test_dir+'/gproject/1.4.13_01/1.4.13_01.gproject',
-             test_dir+'/gproject/1.4.19_01_node_name/1.4.19_01.gproject',
-             test_dir+'/gproject/1.4.19_01_anim/1.4.19_01_anim.gproject',
-             test_dir+'/gproject/2.0.0a31_01/2.0.0a31_01.gproject',
-             ]
+gprojects = [
+    gproj_dir+'/1.4.13_01/1.4.13_01.gproject',
+    gproj_dir+'/1.4.19_01_node_name/1.4.19_01.gproject',
+    gproj_dir+'/1.4.19_01_anim/1.4.19_01_anim.gproject',
+    gproj_dir+'/2.0.0a31_01/2.0.0a31_01.gproject',
+    ]
 
 all_gprojects = [f for f in default_gprojects]
 all_gprojects += [f for f in gprojects]
@@ -59,11 +61,131 @@ def _gen_test_name(name, path):
     :return: test name
     :rtype: str
     """
-    return 'test_{}_{}'.format(name, path.replace('.', '_'))
+    return 'test_{}_{}'.format(name, path.replace(test_dir, '')
+                                         .replace('.', '_'))
 
 
-class TestSequence(unittest.TestCase):
-    pass
+g_parsed = {}
+
+
+def test_generator_parse(path):
+
+    def test_parse(self):
+
+        p = guerilla_parser.parse(path)
+        g_parsed[path] = p
+
+    return test_parse
+
+
+def test_generator_path_to_node(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_path_to_node(self):
+        """check returned path can be used to find node back"""
+        # import cProfile, pstats, StringIO
+        # pr = cProfile.Profile()
+        # pr.enable()
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        for node in p.nodes:
+            self.assertIs(node, p.path_to_node(node.path))
+
+        for node in p._implicit_nodes:
+            self.assertIs(node, p.path_to_node(node.path))
+
+        # pr.disable()
+        # s = StringIO.StringIO()
+        # sortby = 'cumulative'
+        # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        # ps.print_stats()
+        # print(s.getvalue())
+
+    return test_path_to_node
+
+
+def test_generator_nodes(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_nodes(self):
+        """check each node path is unique"""
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        # implicit nodes
+        paths = set()
+
+        for node in p._implicit_nodes:
+            self.assertNotIn(node.path, paths)
+            paths.add(node.path)
+
+        # nodes
+        paths = set()
+
+        for node in p.nodes:
+            self.assertNotIn(node.path, paths)
+            paths.add(node.path)
+
+    return test_nodes
+
+
+def test_generator_raises(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_raises(self):
+
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        root_node = p.root
+
+        with self.assertRaises(guerilla_parser.PathError):
+            root_node.path
+
+        with self.assertRaises(guerilla_parser.ChildError):
+            root_node.get_child('TAGADAPOUETPOUET')
+
+        with self.assertRaises(guerilla_parser.PathError):
+            p.path_to_node('TAGADAPOUETPOUET')
+
+        with self.assertRaises(guerilla_parser.PathError):
+            grl_util.aov_node(p, 'RenderPass', 'Layer', 'TAGADAPOUETPOUET')
+
+    return test_raises
+
+
+def test_generator_child_unique(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_child_unique(self):
+
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        for node in p.nodes:
+
+            child_names = set()
+
+            for child in node.children:
+
+                self.assertNotIn(child.name, child_names)
+
+                child_names.add(child.name)
+
+    return test_child_unique
 
 
 def test_generator_default_gprojects(path):
@@ -74,7 +196,8 @@ def test_generator_default_gprojects(path):
     """
     def test_default_gprojects(self):
 
-        p = guerilla_parser.parse(path)
+        assert path in g_parsed
+        p = g_parsed[path]
 
         self.assertIsInstance(p, guerilla_parser.GuerillaParser)
 
@@ -138,43 +261,6 @@ def test_generator_default_gprojects(path):
     return test_default_gprojects
 
 
-for gproject in default_gprojects:
-    test_name = _gen_test_name('default_gproject', gproject)
-    test = test_generator_default_gprojects(gproject)
-    setattr(TestSequence, test_name, test)
-
-
-def test_generator_default_glayers(path):
-    """Generate a function testing given `path`.
-
-    :param path: gproject path to test
-    :return: function
-    """
-    def test_default_glayers(self):
-
-        p = guerilla_parser.parse(path)
-
-        root = p.root
-
-        self.assertEqual(root.id, 1)
-        self.assertEqual(root.name, 'RenderPass')
-        self.assertEqual(root.type, 'RenderPass')
-        self.assertEqual(root.get_plug('AutoBuildTextures').value, True)
-        self.assertEqual(root.get_plug('BalanceReyesDistribution').value, False)
-        self.assertEqual(root.get_plug('BrdfSamples').value, 16)
-        self.assertEqual(root.get_plug('ColorMode').value, "multiply")
-        self.assertEqual(root.get_plug('DeepCompression').value, 0.1)
-        self.assertEqual(root.get_plug('DefaultSurfaceColor').value, [0.0, 0.0, 0.0])
-
-    return test_default_glayers
-
-
-for gproject in default_glayers:
-    test_name = _gen_test_name('default_glayers', gproject)
-    test = test_generator_default_glayers(gproject)
-    setattr(TestSequence, test_name, test)
-
-
 def test_generator_aovs(path):
     """Generate a function testing given `path`.
 
@@ -184,7 +270,8 @@ def test_generator_aovs(path):
     def test_aovs(self):
         """test render pass render layer and aov particularities"""
 
-        p = guerilla_parser.parse(path)
+        assert path in g_parsed
+        p = g_parsed[path]
 
         aov = grl_util.aov_node(p, 'RenderPass', 'Layer', 'Beauty')
 
@@ -203,144 +290,84 @@ def test_generator_aovs(path):
 
                     self.assertEqual(aov.type, "LayerOut")
 
-                    aov_2 = grl_util.aov_node(p, rp.name, rl.name, aov.display_name)
+                    aov_2 = grl_util.aov_node(p, rp.name, rl.name,
+                                              aov.display_name)
 
                     self.assertIs(aov, aov_2)
 
     return test_aovs
 
 
-for gproject in default_gprojects:
-    test_name = _gen_test_name('aovs', gproject)
-    test = test_generator_aovs(gproject)
-    setattr(TestSequence, test_name, test)
-
-
-def test_generator_path_to_node(path):
+def test_generator_default_glayers(path):
     """Generate a function testing given `path`.
 
     :param path: gproject path to test
     :return: function
     """
-    def test_path_to_node(self):
-        """check returned path can be used to find node back"""
-        # import cProfile, pstats, StringIO
-        # pr = cProfile.Profile()
-        # pr.enable()
-        p = guerilla_parser.parse(path, diagnose=False)
+    def test_default_glayers(self):
 
-        for node in p.nodes:
-            self.assertEqual(node, p.path_to_node(node.path))
+        assert path in g_parsed
+        p = g_parsed[path]
 
-        # pr.disable()
-        # s = StringIO.StringIO()
-        # sortby = 'cumulative'
-        # ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-        # ps.print_stats()
-        # print s.getvalue()
+        root = p.root
 
-    return test_path_to_node
+        self.assertEqual(root.id, 1)
+        self.assertEqual(root.name, 'RenderPass')
+        self.assertEqual(root.type, 'RenderPass')
+        self.assertEqual(root.get_plug('AutoBuildTextures').value, True)
+        self.assertEqual(root.get_plug('BalanceReyesDistribution').value, False)
+        self.assertEqual(root.get_plug('BrdfSamples').value, 16)
+        self.assertEqual(root.get_plug('ColorMode').value, "multiply")
+        self.assertEqual(root.get_plug('DeepCompression').value, 0.1)
+        self.assertEqual(root.get_plug('DefaultSurfaceColor').value,
+                         [0.0, 0.0, 0.0])
+
+    return test_default_glayers
 
 
-for gproject in all_gfiles:
-    test_name = _gen_test_name('path_to_node', gproject)
-    test = test_generator_path_to_node(gproject)
+class TestSequence(unittest.TestCase):
+    pass
+
+
+for path in all_gfiles:
+    test_name = _gen_test_name('001_parse', path)
+    test = test_generator_parse(path)
+    assert not hasattr(TestSequence, test_name)
     setattr(TestSequence, test_name, test)
 
-
-def test_generator_nodes(path):
-    """Generate a function testing given `path`.
-
-    :param path: gproject path to test
-    :return: function
-    """
-    def test_nodes(self):
-        """check each node path is unique"""
-        p = guerilla_parser.parse(path, diagnose=False)
-
-        # implicit nodes
-        paths = set()
-
-        for node in p._implicit_nodes:
-            self.assertNotIn(node.path, paths)
-            paths.add(node.path)
-
-        # nodes
-        paths = set()
-
-        for node in p.nodes:
-            print node.path
-            self.assertNotIn(node.path, paths)
-            paths.add(node.path)
-
-    return test_nodes
-
-
-for gproject in all_gfiles:
-    test_name = _gen_test_name('nodes', gproject)
-    test = test_generator_nodes(gproject)
+    test_name = _gen_test_name('path_to_node', path)
+    test = test_generator_path_to_node(path)
+    assert not hasattr(TestSequence, test_name)
     setattr(TestSequence, test_name, test)
 
-
-def test_generator_raises(path):
-    """Generate a function testing given `path`.
-
-    :param path: gproject path to test
-    :return: function
-    """
-    def test_raises(self):
-
-        p = guerilla_parser.parse(path)
-
-        root_node = p.root
-
-        with self.assertRaises(guerilla_parser.PathError):
-            root_node.path
-
-        with self.assertRaises(guerilla_parser.ChildError):
-            root_node.get_child('TAGADAPOUETPOUET')
-
-        with self.assertRaises(guerilla_parser.PathError):
-            p.path_to_node('TAGADAPOUETPOUET')
-
-        with self.assertRaises(guerilla_parser.PathError):
-            grl_util.aov_node(p, 'RenderPass', 'Layer', 'TAGADAPOUETPOUET')
-
-    return test_raises
-
-
-for gproject in all_gfiles:
-    test_name = _gen_test_name('raises', gproject)
-    test = test_generator_raises(gproject)
+    test_name = _gen_test_name('nodes', path)
+    test = test_generator_nodes(path)
     setattr(TestSequence, test_name, test)
 
+    test_name = _gen_test_name('raises', path)
+    test = test_generator_raises(path)
+    setattr(TestSequence, test_name, test)
 
-def test_generator_child_unique(path):
-    """Generate a function testing given `path`.
+    test_name = _gen_test_name('child_unique', path)
+    test = test_generator_child_unique(path)
+    setattr(TestSequence, test_name, test)
 
-    :param path: gproject path to test
-    :return: function
-    """
-    def test_child_unique(self):
+for path in default_gprojects:
 
-        p = guerilla_parser.parse(path)
+    test_name = _gen_test_name('default_gproject', path)
+    test = test_generator_default_gprojects(path)
+    assert not hasattr(TestSequence, test_name)
+    setattr(TestSequence, test_name, test)
 
-        for node in p.nodes:
+    test_name = _gen_test_name('aovs', path)
+    test = test_generator_aovs(path)
+    assert not hasattr(TestSequence, test_name)
+    setattr(TestSequence, test_name, test)
 
-            child_names = set()
-
-            for child in node.children:
-
-                self.assertNotIn(child.name, child_names)
-
-                child_names.add(child.name)
-
-    return test_child_unique
-
-
-for gproject in all_gfiles:
-    test_name = _gen_test_name('child_unique', gproject)
-    test = test_generator_child_unique(gproject)
+for path in default_glayers:
+    test_name = _gen_test_name('default_glayers', path)
+    test = test_generator_default_glayers(path)
+    assert not hasattr(TestSequence, test_name)
     setattr(TestSequence, test_name, test)
 
 
@@ -364,10 +391,14 @@ def test_generator_set_plug_value(path):
     return test_set_plug_value
 
 
+class SetPlugValueTestCase(unittest.TestCase):
+    pass
+
+
 for gproject in default_gprojects:
     test_name = _gen_test_name('set_plug_value', gproject)
     test = test_generator_set_plug_value(gproject)
-    setattr(TestSequence, test_name, test)
+    setattr(SetPlugValueTestCase, test_name, test)
 
 
 def test_generator_write_file(path):
@@ -393,8 +424,13 @@ def test_generator_write_file(path):
 
         node = p.path_to_node("|Preferences|RenderViewport")
 
+        # get value
         plug = node.get_plug("ColorMode")
+        self.assertEqual(plug.value, 'multiply')
+
+        # set value
         p.set_plug_value([(plug, 'divide')])
+        self.assertEqual(plug.value, 'divide')
 
         p.write(tmp_file)
 
@@ -425,10 +461,14 @@ def test_generator_write_file(path):
     return test_write_file
 
 
+class WriteFileTestCase(unittest.TestCase):
+    pass
+
+
 for gproject in default_gprojects:
     test_name = _gen_test_name('write_file', gproject)
     test = test_generator_write_file(gproject)
-    setattr(TestSequence, test_name, test)
+    setattr(WriteFileTestCase, test_name, test)
 
 
 class TestStringMethods(unittest.TestCase):

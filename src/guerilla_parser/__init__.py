@@ -3,7 +3,7 @@ from .parser import GuerillaParser
 from .node import GuerillaNode
 from .plug import GuerillaPlug
 
-__version__ = "0.3.0"
+__version__ = "0.5.0"
 
 
 # move the most useful function on top

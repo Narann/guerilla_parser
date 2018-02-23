@@ -13,5 +13,3 @@ API reference providing details on the actual code.
     parser
     node
     plug
-    guerilla_parser/index
-

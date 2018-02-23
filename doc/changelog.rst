@@ -1,6 +1,28 @@
 Changelog
 =========
 
+0.5.0 (2018 02 24)
+------------------
+
+Add Python 3 support (and CI). Now officially support 2.7 and 3.4.
+
+Support new characters for node names:
+
+* brackets (``[]``).
+
+Fix:
+
+* Implicit node paths were not properly parsed.
+* Guerilla file encoding is ``iso-8859-1`` (was broken in Python 3)
+
+Unit tests: Improve performance parsing once and use later.
+
+Documentation:
+
+* Uppercase first letter of every docstring.
+* Remove useless quotes from class names.
+* Rewrite most of the documentation.
+
 0.4.0 (2018 02 13)
 ------------------
 

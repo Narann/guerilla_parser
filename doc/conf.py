@@ -31,7 +31,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Guerilla parser'
-copyright = u'2016, Dorian Fevrier'
+copyright = u'2016-2018, Dorian Fevrier'
 
 # Version
 version = guerilla_parser.__version__

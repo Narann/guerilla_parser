@@ -1,5 +1,7 @@
 from .exception import ChildError, PathError
 
+from .util import itervalues
+
 
 class GuerillaNode(object):
     """Class representing a parsed Guerilla node.
@@ -11,11 +13,11 @@ class GuerillaNode(object):
     :ivar type: Node type.
     :type type: str
     :ivar parent: Node parent.
-    :type parent: :class:`GuerillaNode`
+    :type parent: GuerillaNode
     :ivar children: Node children.
-    :type children: list[:class:`GuerillaNode`]
+    :type children: list[GuerillaNode]
     :ivar plug_dict: Node plug by name.
-    :type plug_dict: dict[str, :class:`GuerillaPlug`]
+    :type plug_dict: dict[str, GuerillaPlug]
     """
     def __init__(self, id_, name, type_, parent=None):
         """Init node.
@@ -27,11 +29,11 @@ class GuerillaNode(object):
         :param type_: Node type.
         :type type_: str
         :param parent: Node parent.
-        :type parent: :class:`GuerillaNode`
+        :type parent: GuerillaNode
         """
         assert isinstance(id_, int), (type(id_), id_)
-        assert isinstance(name, basestring), (type(name), name)
-        assert isinstance(type_, basestring), (type(type_), type_)
+        assert isinstance(name, str), (type(name), name)
+        assert isinstance(type_, str), (type(type_), type_)
         assert len(type_), (len(type_), type_)
 
         self.id = id_
@@ -113,9 +115,9 @@ class GuerillaNode(object):
         """Iterator over node plugs.
 
         :return: Iterator over node plugs.
-        :rtype: collection.iterator[:class:`GuerillaPlug`]
+        :rtype: collection.iterator[GuerillaPlug]
         """
-        for plug in self.plug_dict.itervalues():
+        for plug in itervalues(self.plug_dict):
             yield plug
 
     def get_child(self, name):
@@ -123,7 +125,7 @@ class GuerillaNode(object):
 
         :param name: Name of the child node to return.
         :return: Child node with given `name`.
-        :rtype: :class:`GuerillaNode`
+        :rtype: GuerillaNode
         :raise KeyError: When no child node with given `name` is found.
         """
         for n in self.children:
@@ -137,7 +139,7 @@ class GuerillaNode(object):
 
         :param name: Name of the plug to return.
         :return: Plug with given `name`.
-        :rtype: :class:`GuerillaPlug`
+        :rtype: GuerillaPlug
         :raise KeyError: When no plug with given name is found
         """
         return self.plug_dict[name]

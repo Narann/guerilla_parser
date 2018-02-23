@@ -5,11 +5,11 @@
 guerilla_parser
 ===============
 
-Python Guerilla file parser.
+Python Guerilla file parser is a python module aimed to parse and retrieve `Guerilla`_ files content easily.
 
+It supports .gproject, .glayer, and other files written by Guerilla.
 
-:doc:`known_limitations`
- The way Guerilla file format is defined imply some parsing limitations.
+.. _Guerilla: http://guerillarender.com/
 
 Change log
 ----------
@@ -22,13 +22,6 @@ Table of content
 .. toctree::
     :maxdepth: 2
 
-    guide/index
+    example
     reference/index
-    release/index
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    known_limitations

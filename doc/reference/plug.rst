@@ -5,8 +5,6 @@
 Guerilla Plug class
 -------------------
 
-API reference providing details on the actual code.
-
 .. autoclass:: guerilla_parser.GuerillaPlug
     :members:
     :undoc-members:

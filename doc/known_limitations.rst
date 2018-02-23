@@ -1,7 +1,7 @@
 Known limitations
 =================
 
-Guerilla file format has some particularities affecting the way the parser is written.
+Guerilla file format imply some parsing limitations.
 
 int vs float
 ------------
@@ -20,3 +20,13 @@ TODO
 - 'create.Id'
 - float to int so we only take float
 - not tested on python 3 (because CGI is python2)
+
+Conversions
+-----------
+
+* Missing lua to python conversion `'{}'`.
+* Missing lua to python conversion `'types.color'`.
+* Missing lua to python conversion `'types.float {min=1,max=10}'`.
+* Missing lua to python conversion `'matrix.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`.
+* Missing lua to python conversion `'transform.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`.
+* Curve unpacking is not supported.

@@ -4,10 +4,10 @@ git:
   depth: 3
 
 python:
+  - "2.6"
   - "2.7"
+  - "3.4"
 
 # install: "pip install -r requirements.txt"
 
 script: python $TRAVIS_BUILD_DIR/test/utest.py
-
-

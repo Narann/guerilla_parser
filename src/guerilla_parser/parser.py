@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import math
 import re
 
@@ -6,9 +8,13 @@ from .exception import PathError
 from .node import GuerillaNode
 from .plug import GuerillaPlug
 
+from .util import iteritems
+from .util import itervalues
+from .util import open_
+
 
 # use to print missing implementation of python to lua value conversion
-_print_missing_implementation = True
+_print_missing_implementation = False
 
 
 # guerilla class names inheriting from guerilla.Plug
@@ -29,17 +35,17 @@ _FLOAT_TABLE_PARSE = re.compile('{[0-9.,-]+}')
 
 
 class GuerillaParser(object):
-    """Guerilla .gproject file parser
+    """Guerilla .gproject file parser.
 
-    :ivar objs: Guerilla "object" per id (parsed in ``oid[<id>]``)
+    :ivar objs: Guerilla "object" per id (parsed in ``oid[<id>]``).
     :type objs: dict[int, GuerillaNode|GuerillaPlug]
-    :ivar diagnose: diagnose mode
+    :ivar diagnose: Diagnose mode.
     :type diagnose: bool
     """
     _PY_TO_LUA_BOOL = {True: 'true',
                        False: 'false'}
 
-    _LUA_TO_PY_BOOL = {v: k for (k, v) in _PY_TO_LUA_BOOL.iteritems()}
+    _LUA_TO_PY_BOOL = {v: k for (k, v) in iteritems(_PY_TO_LUA_BOOL)}
 
     # main line regex
     _LINE_PARSE = re.compile(
@@ -60,7 +66,7 @@ class GuerillaParser(object):
         '(?P<value>.*)$')
 
     _CMD_SET_ARG_PARSE = re.compile(
-        '"\$(?P<id>\d+)(?P<path>[|:\w\\\\/,()+ .*$-]+)?\.(?P<plug>\w+)",'
+        '"\$(?P<id>\d+)(?P<path>[\[\]|:\w\\\\/,()+ .*$-]+)?\.(?P<plug>\w+)",'
         '(?P<value>.+)', re.UNICODE)
 
     _CMD_CONNECT_ARG_PARSE = re.compile(
@@ -77,20 +83,17 @@ class GuerillaParser(object):
 
         super(GuerillaParser, self).__init__()
 
-        self.__org_content = content
-        """original content of the gproject, never modified
-        :type: str"""
+        # original content of the gproject, never modified
+        self.__org_content = content  # :type: str
 
-        self.__mod_content = None
-        """modified content of the gproject (modified by set_plug_value())
-        :type: str"""
+        # modified content of the gproject (modified by set_plug_value())
+        self.__mod_content = None  # :type: str
 
         self.__doc_format_rev = None
 
         self.objs = {}
 
-        self._implicit_nodes = []
-        """:type: set[GuerillaNode]"""
+        self._implicit_nodes = []  # :type: list[GuerillaNode]
 
         self.diagnose = diagnose
 
@@ -105,12 +108,12 @@ class GuerillaParser(object):
         self.__parse_nodes()
 
     def __eq__(self, other):
-        """compare the content of this instance with the content of an other
+        """Compare the content of this instance with the content of an other
         parser.
 
-        :param other: other parser instance to compare content of
-        :type other: `Base`
-        :return: True if both parser instance have same modified content
+        :param other: Other parser instance to compare content of.
+        :type other: GuerillaParser
+        :return: True if both parser instance have same modified content.
         :rtype: bool
         """
         if self is other:
@@ -120,23 +123,23 @@ class GuerillaParser(object):
 
     @classmethod
     def from_file(cls, path, *args, **kwords):
-        """construct parser reading given file `path` content
+        """Construct parser reading given file `path` content.
 
-        :param path: .gproject file path
+        :param path: .gproject file path.
         :type path: str
-        :return: parser filled with content of given `path`
+        :return: Parser filled with content of given `path`.
         :rtype: GuerillaParser
         """
-        with open(path, 'r') as f:
+        with open_(path) as f:
             content = f.read()
 
         return cls(content, *args, **kwords)
 
     @property
     def has_changed(self):
-        """return if current parsed file has changed
+        """Return if current parsed file has changed.
 
-        :return: True if both parser instance have same modified content
+        :return: True if both parser instance have same modified content.
         :rtype: bool
         """
         # no modified content mean we didn't tried to modified it
@@ -147,9 +150,9 @@ class GuerillaParser(object):
 
     @property
     def modified_content(self):
-        """modified parsed gproject content
+        """Modified parsed gproject content.
 
-        :return: modified parsed gproject content
+        :return: Modified parsed gproject content.
         :rtype: str
         """
         if self.__mod_content is None:
@@ -160,17 +163,17 @@ class GuerillaParser(object):
 
     @property
     def original_content(self):
-        """original (unmodified) parsed gproject content
+        """Original (unmodified) parsed gproject content.
 
-        :return: original (unmodified) parsed gproject content
+        :return: Original (unmodified) parsed gproject content.
         :rtype: str
         """
         return self.__org_content
 
     def write(self, path):
-        """write modified content to given file `path`
+        """Write modified content to given file `path`.
 
-        :param path: .gproject file path
+        :param path: .gproject file path.
         :type path: str
         """
         with open(path, 'w') as f:
@@ -178,21 +181,21 @@ class GuerillaParser(object):
 
     @property
     def root(self):
-        """root node (top node of the parsed file)
+        """Root node (top node of the parsed file).
 
-        :return: root node
+        :return: Root node.
         :rtype: GuerillaNode
         """
         return self.objs[1]
 
     @property
     def doc_format_rev(self):
-        """document format revision
+        """Document format revision.
 
-        :return: document format revision
+        :return: Document format revision.
         :rtype: int
-        :raise: AttributeError if no document format revision is present in
-        file
+        :raises AttributeError: If no document format revision is present in
+            file.
         """
         if self.__doc_format_rev is None:
             raise AttributeError("Missing doc format revision")
@@ -201,12 +204,12 @@ class GuerillaParser(object):
 
     @property
     def nodes(self):
-        """iterate over nodes of the gproject file (except root node)
+        """Iterate over nodes of the gproject file (except root node).
 
-        :return: generator of nodes of the gproject file
+        :return: Generator of nodes of the gproject file.
         :rtype: collections.iterator[GuerillaNode]
         """
-        for obj in self.objs.itervalues():
+        for obj in itervalues(self.objs):
 
             if obj.type in plug_class_names:  # plug node detected
                 continue
@@ -216,8 +219,17 @@ class GuerillaParser(object):
 
             yield obj
 
+    @staticmethod
+    def __clean_path(path):
+        """Clean node path.
+
+        "|foo|sphereShape\\\\$" -> "|foo|sphereShape$"
+        "|bar|clous\\\\[1\\\\]" -> "|foo|clous[1]"
+        """
+        return re.sub(r'\\\\(.)', '\g<1>', path)
+
     def __parse_nodes(self):
-        """parse commands in Guerilla file
+        """Parse commands in Guerilla file.
         """
         self.objs = {}
 
@@ -258,6 +270,7 @@ class GuerillaParser(object):
                     parent = self.objs[parent_id]
 
                     if parent_path:
+                        parent_path = self.__clean_path(parent_path)
                         parent = self.__create_and_get_implicit_node(parent,
                                                                      parent_path)
 
@@ -326,14 +339,15 @@ class GuerillaParser(object):
                 node = self.objs[oid]
 
                 if path:
+                    path = self.__clean_path(path)
                     node = self.__create_and_get_implicit_node(node, path)
 
                 GuerillaPlug(plug_name, 'Plug', node, value,
                              org_value=org_value)
 
                 if self.diagnose:
-                    print ('Set: {node.path}.{plug_name} -> '
-                           '{value}').format(**locals())
+                    print(('Set: {node.path}.{plug_name} -> '
+                           '{value}').format(**locals()))
 
             elif cmd == 'connect':
                 ###############################################################
@@ -353,24 +367,26 @@ class GuerillaParser(object):
                 out_node = self.objs[out_oid]
 
                 if in_path:
+                    in_path = self.__clean_path(in_path)
                     in_node = self.__create_and_get_implicit_node(in_node,
                                                                   in_path)
 
                 if out_path:
+                    out_path = self.__clean_path(out_path)
                     out_node = self.__create_and_get_implicit_node(out_node,
                                                                    out_path)
 
                 if not out_path and not out_plug_name:
                     # output is in the form "$64", an expression node
-                    print (out_node.type, out_node.path, '->',
-                           in_node.type, in_node.path, in_plug_name)
+                    print(out_node.type, out_node.path, '->',
+                          in_node.type, in_node.path, in_plug_name)
                     # TODO: support when output is $64-like
                     continue
 
                 if not in_path and not in_plug_name:
                     # same here for inputs
-                    print (in_node.type, in_node.path, '->',
-                           in_node.type, in_node.path, in_plug_name)
+                    print(in_node.type, in_node.path, '->',
+                          in_node.type, in_node.path, in_plug_name)
                     # TODO: support when input is $64-like
                     continue
 
@@ -405,8 +421,8 @@ class GuerillaParser(object):
                 in_plug.input = out_plug
 
                 if self.diagnose:
-                    print ('Connect: {out_node.path}.{out_plug_name} -> '
-                           '{in_node.path}.{in_plug_name}').format(**locals())
+                    print(('Connect: {out_node.path}.{out_plug_name} -> '
+                           '{in_node.path}.{in_plug_name}').format(**locals()))
 
             elif cmd == 'depend':
                 ###############################################################
@@ -426,24 +442,26 @@ class GuerillaParser(object):
                 out_node = self.objs[out_oid]
 
                 if in_path:
+                    in_path = self.__clean_path(in_path)
                     in_node = self.__create_and_get_implicit_node(in_node,
                                                                   in_path)
 
                 if out_path:
+                    out_path = self.__clean_path(out_path)
                     out_node = self.__create_and_get_implicit_node(out_node,
                                                                    out_path)
 
                 if self.diagnose:
-                    print ('Depend: {out_node.path}.{out_plug_name} -> '
-                           '{in_node.path}.{in_plug_name}').format(**locals())
+                    print(('Depend: {out_node.path}.{out_plug_name} -> '
+                           '{in_node.path}.{in_plug_name}').format(**locals()))
 
                 # TODO: For now, dependencies are not supported
 
             else:
-                print "Unknown command '{cmd}'".format(**locals())
+                print("Unknown command '{cmd}'".format(**locals()))
 
     def __create_and_get_implicit_node(self, start_node, path):
-        """macro to recursively create implicit nodes from given `path`
+        """Macro to recursively create implicit nodes from given `path`
         starting from given `start_node`.
 
         if a direct path is present (instead of a direct node id)
@@ -455,8 +473,11 @@ class GuerillaParser(object):
         parent.
 
         :param start_node:
+        :type start_node: GuerillaNode
         :param path:
+        :type path: str
         :return:
+        :rtype: GuerillaNode
         """
         # get in the cache for full path first
         try:
@@ -499,13 +520,13 @@ class GuerillaParser(object):
 
     @staticmethod
     def __lua_dict_to_python(lua_dict_str):
-        """convert given lua table representation to python dict
+        """Convert given lua table representation to python dict.
 
         "{foo=1,bar=2}" -> {'foo': 1, 'bar': 2}
 
-        :param lua_dict_str: lua table representation to convert in python
+        :param lua_dict_str: Lua table representation to convert in python.
         :type lua_dict_str: str
-        :return: lua table representation converted to python dict
+        :return: Lua table representation converted to python dict.
         :rtype: dict
         """
         # reformat
@@ -517,11 +538,11 @@ class GuerillaParser(object):
 
     @staticmethod
     def _lua_to_py_value(raw_str):
-        """convert given guerilla lua `raw_str` value expression to python
+        """Convert given guerilla lua `raw_str` value expression to python.
 
-        :param raw_str: raw string representing lua value to convert to python
+        :param raw_str: Raw string representing lua value to convert to python.
         :type raw_str: str
-        :return: value converted from lua to python
+        :return: Value converted from lua to python.
         :rtype: bool|float|list[float]|str
         """
         if raw_str == 'true':
@@ -572,31 +593,31 @@ class GuerillaParser(object):
             return raw_str
 
         if _print_missing_implementation:
-            print ("Missing lua to python conversion "
-                   "'{raw_str}'").format(**locals())
+            print(("Missing lua to python conversion "
+                   "'{raw_str}'").format(**locals()))
 
         return raw_str
 
     @staticmethod
     def __is_float_intable(value):
-        """return if given float `value` is possible to convert to int without
-        lost
+        """Return if given float `value` is possible to convert to int without
+        lost.
 
         4.2 returns False, 4.0 return True
 
         :param value:
-        :return: true if given `value` is convertible in `int` without
+        :return: True if given `value` is convertible in `int` without.
         precision loss.
         """
         return (value - math.floor(value)) == 0.0
 
     @classmethod
     def _py_to_lua_value(cls, value):
-        """convert given python `value` to guerilla lua string representation
+        """Convert given python `value` to guerilla lua string representation.
 
-        :param value: python value to convert in lua string representation
+        :param value: Python value to convert in lua string representation.
         :type value: bool|int|float|string|list[float]|dict
-        :return: value converted from python to lua representation
+        :return: Value converted from python to lua representation.
         :rtype: str
         """
         if type(value) is bool:
@@ -644,26 +665,30 @@ class GuerillaParser(object):
             return "".join(res)
 
         else:
-            print ("Missing python to lua conversion "
-                   "'{value}'").format(**locals())
+            print(("Missing python to lua conversion "
+                   "'{value}'").format(**locals()))
 
         return value
 
     def path_to_node(self, path):
-        """find and return node at given `path`
+        """Find and return node at given `path`.
 
-        "|foo|bar|bee" will return "bee" node.
-        "$65|bar|bee" will return "bee" node.
+        :Example:
 
-        :param path: path to get node of
+        >>> p.path_to_node('|foo|bar|bee')
+        GuerillaNode('bee', 10, 'primitive')
+        >>> p.path_to_node('$65|bar|bee')
+        GuerillaNode('bee', 10, 'primitive')
+
+        :param path: Path to get node of.
         :type path: str
-        :return: node found from given `path`
+        :return: Node found from given `path`.
         :rtype: GuerillaNode
-        :raise: PathError if root node can't be found
-        :raise: PathError if path contain unreachable nodes
+        :raises PathError: If root node can't be found.
+        :raises PathError: If path contain unreachable nodes.
         """
         assert path is not None
-        assert isinstance(path, basestring), (type(path), path)
+        assert isinstance(path, str), (type(path), path)
 
         # find first node of the path
         if path.startswith('|'):  # "|foo|bar|bee" like
@@ -697,12 +722,19 @@ class GuerillaParser(object):
 
     @staticmethod
     def node_to_id_path(node):
-        """return the shortest `id path` for given implicit `node`:
+        """Return the shortest `id path` for given `node`.
 
-        Examples ``$60`, ``$37|Frustum``, etc.
+        :Example:
 
-        :param node: Implicit node to get `id path` from
-        :return: str
+        >>> p.node_to_id_path(my_node)
+        '$60'
+        >>> p.node_to_id_path(my_other_node)
+        '$37|Frustum'
+
+        :param node: Implicit node to get `id path` from.
+        :type node: GuerillaNode
+        :return:
+        :rtype: str
         """
         path = []
 
@@ -721,11 +753,12 @@ class GuerillaParser(object):
 
     @staticmethod
     def __escape_str_for_regex(value):
-        """escape given string `value` to make it parsed in regex
+        """Escape given string `value` to make it parsed in regex.
 
-        :param value: string to espace for regex
+        :param value: String to escape for regex.
         :type value: str
-        :return: escaped string
+        :return: Escaped string.
+        :rtype: str
         """
         return value.replace('\\', '\\\\')\
                     .replace('^', '\\^')\
@@ -750,7 +783,7 @@ class GuerillaParser(object):
         """
 
         :param plug_values:
-        :return:
+        :type plug_values: list[(GuerillaPlug, str)]
         """
         # this list will be filled with "set(attr, value)" regex so we can
         # create a "set(attr1, value1)|set(attr2, value2)|set(attr3, value3)"

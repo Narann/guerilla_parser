@@ -1,39 +1,39 @@
 
 class GuerillaPlug(object):
-    """class representing a parsed Guerilla plug
+    """Class representing a parsed Guerilla plug.
 
-    :ivar name: plug name
+    :ivar name: Plug name.
     :type name: str
-    :ivar type: plug type (often 'Plug')
+    :ivar type: Plug type (often 'Plug').
     :type type: str
-    :ivar parent: plug parent node
+    :ivar parent: Parent plug's node.
     :type parent: GuerillaNode
-    :ivar value: plug value
+    :ivar value: Plug value.
     :type value: bool|float|str
-    :ivar org_value: original parser plug value
+    :ivar org_value: Original parser plug value.
     :type org_value: str
-    :ivar input: plug input
+    :ivar input: Plug input.
     :type input: GuerillaPlug
-    :ivar outputs: plug outputs
+    :ivar outputs: Plug outputs.
     :type outputs: list[GuerillaPlug]
     """
     def __init__(self, name, type_, parent, value=None, flag=None,
                  org_value=None):
         """init plug
 
-        :param name: plug name
+        :param name: Plug name.
         :type name: str
-        :param type_: plug type (often 'Plug')
+        :param type_: Plug type (often 'Plug').
         :type type_: str
-        :param parent: plug node parent
-        :type parent: `GuerillaNode`
-        :param value: plug value
+        :param parent: Plug node parent.
+        :type parent: GuerillaNode
+        :param value: Plug value.
         :type value: bool|float|str
-        :param org_value: original parser plug value
+        :param org_value: Original parser plug value.
         :type org_value: str
         """
-        assert isinstance(name, basestring), (type(name), name)
-        assert isinstance(type_, basestring), (type(type_), type_)
+        assert isinstance(name, str), (type(name), name)
+        assert isinstance(type_, str), (type(type_), type_)
         assert parent is not None, (type(parent), parent)
 
         self.name = name
@@ -64,9 +64,9 @@ class GuerillaPlug(object):
 
     @property
     def path(self):
-        """full plug path
+        """Full plug path.
 
-        :return: full plug path
+        :return: Full plug path.
         :rtype: str
         """
         return '{self.parent.path}.{self.name}'.format(**locals())
