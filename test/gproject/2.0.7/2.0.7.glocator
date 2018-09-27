@@ -1,0 +1,8 @@
+docformatrevision(19)
+oid[1]=create("SceneGraphNode","","'!\"#$%&\\'()*+,-./:;<=>?@[\\\\]^_`{|}~")
+	set("$1.FreezeTransform",false)
+	set("$1.Hidden",false)
+	set("$1.HierarchyMode",0)
+	set("$1.HostPath","")
+	set("$1.Membership","")
+	set("$1.Transform",transform.Id)

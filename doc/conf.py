@@ -37,6 +37,9 @@ copyright = u'2016-2018, Dorian Fevrier'
 version = guerilla_parser.__version__
 release = version
 
+# Internationalization
+language = 'en'
+
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = ['static', 'template']

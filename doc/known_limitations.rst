@@ -19,7 +19,9 @@ TODO
 - '{}'
 - 'create.Id'
 - float to int so we only take float
-- not tested on python 3 (because CGI is python2)
+- add delete command support (optional?).
+- improve and expose set_plug_value().
+- utest to execute inside Guerilla (Guerilla Docker image?).
 
 Conversions
 -----------

@@ -69,4 +69,8 @@ class GuerillaPlug(object):
         :return: Full plug path.
         :rtype: str
         """
-        return '{self.parent.path}.{self.name}'.format(**locals())
+        if self.parent.id == 1:
+            parent_path = ""
+        else:
+            parent_path = self.parent.path
+        return '{parent_path}.{self.name}'.format(**locals())

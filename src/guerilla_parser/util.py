@@ -1,6 +1,6 @@
 import sys
 
-import guerilla_parser as grl_parser
+from .exception import PathError
 
 
 def dump(node, show_plugs=True, depth=0):
@@ -23,6 +23,34 @@ def dump(node, show_plugs=True, depth=0):
 
     for child in node.children:
         dump(child, show_plugs, depth + 1)
+
+
+def path_name_to_name(path_name):
+    """
+
+    :param path_name:
+    :return:
+    """
+    return path_name.replace("\\\\", "\\") \
+                    .replace(r"\.", ".", ) \
+                    .replace(r"\$", "$") \
+                    .replace(r"\|", "|") \
+                    .replace(r"\[", "[") \
+                    .replace(r"\]", "]")
+
+
+def name_to_path_name(name):
+    """
+
+    :param name:
+    :return:
+    """
+    return name.replace("\\", "\\\\")\
+               .replace(".", r"\.")\
+               .replace("$", r"\$")\
+               .replace("|", r"\|")\
+               .replace("[", r"\[")\
+               .replace("]", r"\]")
 
 
 def aov_node(parser, rp_name, rl_name, aov_name):
@@ -61,12 +89,11 @@ def aov_node(parser, rp_name, rl_name, aov_name):
             aov_nodes.append(aov_node)
 
     if len(aov_nodes) == 0:
-        raise grl_parser.PathError(("Can't find aov '{rp_name}', '{rl_name}', "
-                                    "'{aov_name}'").format(**locals()))
+        raise PathError(("Can't find aov '{rp_name}', '{rl_name}', "
+                         "'{aov_name}'").format(**locals()))
     elif len(aov_nodes) == 2:
-        raise grl_parser.PathError(
-            ("More than one aov found '{rp_name}', "
-             "'{rl_name}', '{aov_name}'").format(**locals()))
+        raise PathError(("More than one aov found '{rp_name}', "
+                         "'{rl_name}', '{aov_name}'").format(**locals()))
     else:
         assert len(aov_nodes) == 1, aov_nodes
         return aov_nodes[0]
@@ -90,4 +117,4 @@ else:
         return d.itervalues(**kw)
 
     def open_(path):
-        return open(path, 'rt')
+        return open(path, 'rU')

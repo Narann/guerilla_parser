@@ -1,6 +1,7 @@
 from .exception import ChildError, PathError
 
 from .util import itervalues
+from .util import name_to_path_name
 
 
 class GuerillaNode(object):
@@ -8,8 +9,6 @@ class GuerillaNode(object):
 
     :ivar id: Node id (value in parsed expression ``oid[<id>]=``).
     :type id: int
-    :ivar name: Node name.
-    :type name: str
     :ivar type: Node type.
     :type type: str
     :ivar parent: Node parent.
@@ -25,19 +24,19 @@ class GuerillaNode(object):
         :param id_: Value in parsed expression ``oid[<id>]=``.
         :type id_: int
         :param name: Node name.
-        :type name: str
+        :type name: (str or int)
         :param type_: Node type.
         :type type_: str
         :param parent: Node parent.
         :type parent: GuerillaNode
         """
         assert isinstance(id_, int), (type(id_), id_)
-        assert isinstance(name, str), (type(name), name)
+        assert isinstance(name, (str, int)), (type(name), name)
         assert isinstance(type_, str), (type(type_), type_)
         assert len(type_), (len(type_), type_)
 
         self.id = id_
-        self.name = name
+        self.__name = name
         self.type = type_
         self.parent = parent
 
@@ -54,14 +53,43 @@ class GuerillaNode(object):
         # we have generated once
         self.__path_cache = None
 
+        # for path, name with number are exposed with bracket:
+        # 0 -> '[0]'
+        # as we use this value a lot in path property, we cache it here.
+        if isinstance(self.name, int):
+            self._name_for_path = '[{}]'.format(self.name)
+        else:
+            self._name_for_path = name_to_path_name(self.name)
+
     def __repr__(self):
         """
 
         :return:
         :rtype: str
         """
-        return "{}({id}, '{name}', '{type}')".format(type(self).__name__,
-                                                     **vars(self))
+        name = "'{}'".format(self.name) if isinstance(self.name, str)\
+            else self.name
+
+        return "{}({}, {}, '{}')".format(type(self).__name__, self.id, name,
+                                         self.type)
+
+    @property
+    def name(self):
+        """Node name.
+
+        :return: Node name.
+        :rtype: (str, int)
+        """
+        return self.__name
+
+    @name.setter
+    def name(self, value):
+        """Set node name.
+
+        :param value: New node name.
+        """
+        self.__name = value
+        self.__path_cache = None  # clean path cache as we just renamed node
 
     @property
     def path(self):
@@ -81,9 +109,10 @@ class GuerillaNode(object):
             path = []
             node = self
             while node is not None:
+
                 # some nodes can be named "foo|bar" so we have to escape "|"
                 # from their names.
-                path.append(node.name.replace("|", "\\|"))
+                path.append(node._name_for_path)
                 node = node.parent
 
             # the root should never appear in the path (but we replace it to an

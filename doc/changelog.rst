@@ -1,6 +1,55 @@
 Changelog
 =========
 
+This changelog keep track of modifications. Keep an eye on it when changing
+versions. Some advices are often provided.
+
+0.6.0 (2018 02 27)
+------------------
+
+Add Python 3.5 and 3.6 CI test. Now officially support 2.7, 3.4, 3.5 and 3.6.
+
+``connect()`` and ``depend()`` call with nodes having dots ``.`` is now
+supported.
+
+Support ``^`` character in ``set()`` command.
+
+New iterator: ``GuerillaParser.plugs`` iterate over every parsed
+``GuerillaPlug``.
+
+New plug types found and supported:
+
+* ``HSetPlug``
+* ``HVisiblePlug``
+* ``HMattePlug``
+* ``SceneGraphNodePropsPlug``
+* ``SceneGraphNodeRenderPropsPlug``
+* ``AttributePlug``
+* ``AttributeShaderPlug``
+
+See :doc:`this page <file_format_info>` for more information.
+
+Fix node with number as name (``Cube``, ``Sphere``, ``Plane``, etc. with type
+``SubPrimitive``). Guerilla return their name as number (``0`` for default
+``Cube`` sub primitive) but they are bracketed in paths ``Cube|[0]``. Now, this
+behavior is properly emulated.
+
+Fix ``GuerillaPlug.path`` could raise an exception if plug's parent is the root
+node.
+
+Fix ``GuerillaParser()`` ``diagnose`` argument would crash when trying to print
+root node paths.
+
+Fix no more printing of various unknown commands.
+
+Fix ``GuerillaParser.nodes`` property wasn't iterating in every nodes.
+
+Still improve documentation.
+
+Rewrite most regex.
+
+Handle Guerilla paths for numeric node names (``SubPrimitive`` typed nodes).
+
 0.5.0 (2018 02 24)
 ------------------
 
@@ -29,7 +78,8 @@ Documentation:
 Support new characters:
 
 * slash (``/``) in path of ``set()`` commands.
-* comma (``,``), dollar (``$``) and minus (``-``) in path of ``connect()`` commands.
+* comma (``,``), dollar (``$``) and minus (``-``) in path of ``connect()``
+commands.
 
 Improve documentation formating.
 
@@ -55,7 +105,8 @@ Support nodes with empty names (``GraphFrame`` can have empty string as name).
 
 Fix bad implicit node handling (rewrite implementation).
 
-Write a ``__repr__()`` implementation for ``GuerillaNode`` and ``GuerillaPlug`` for debugging purpose.
+Write a ``__repr__()`` implementation for ``GuerillaNode`` and ``GuerillaPlug``
+for debugging purpose.
 
 Rewrite unit test implementation to dynamically create them.
 

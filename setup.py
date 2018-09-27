@@ -14,8 +14,7 @@ setup(name='guerilla_parser',
       url='https://github.com/Narann/guerilla_parser',
       author_email='fevrier.dorian@yahoo.fr',
       description=('This python module provide an easy way to parse Guerilla '
-                   'files (only .gproject files for now) and navigate into '
-                   'parsed nodes and plugs.'),
+                   'files and navigate into parsed nodes and plugs.'),
       long_description=open('README.md').read(),
       include_package_data=True,  # enable MANIFEST.in
       keywords='guerilla, parser, gproject',
@@ -24,5 +23,7 @@ setup(name='guerilla_parser',
           'License :: OSI Approved :: MIT License',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
       ],
       )

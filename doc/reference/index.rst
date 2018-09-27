@@ -1,11 +1,9 @@
-..
-    :copyright: Copyright (c) 2016-2018 Dorian Fevrier
-    :license: See LICENSE file
-
 Reference
----------
+=========
 
-API reference providing details on the actual code.
+.. module:: guerilla_parser
+
+``guerilla_parser`` module rely on three classes.
 
 .. toctree::
     :maxdepth: 2

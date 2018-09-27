@@ -15,6 +15,8 @@ from .util import open_
 
 # use to print missing implementation of python to lua value conversion
 _print_missing_implementation = False
+_print_unknown_command = False
+_print_expression_node_connection = False
 
 
 # guerilla class names inheriting from guerilla.Plug
@@ -25,7 +27,14 @@ plug_class_names = {'BakePlug',
                     'HostPlug',
                     'MeshPlug',
                     'Plug',
-                    'UserPlug'}
+                    'UserPlug',
+                    'HSetPlug',
+                    'HVisiblePlug',
+                    'HMattePlug',
+                    'SceneGraphNodePropsPlug',
+                    'SceneGraphNodeRenderPropsPlug',
+                    'AttributePlug',
+                    'AttributeShaderPlug'}
 
 # floating value regex "4.64"
 _FLOAT_PARSE = re.compile('[0-9.-]+')
@@ -56,8 +65,8 @@ class GuerillaParser(object):
     # per command argument regex
     _CMD_CREATE_ARG_PARSE = re.compile(
         '"(?P<type>[a-zA-Z0-9]+)",'
-        '"(?P<parent>[^,\n]*)",'
-        '(("(?P<name>.+?)")|(?P<name_number>\d+?))?'
+        '"(?P<parent>(\\\\"|[^"])*)",'
+        '(("(?P<name>(\\\\"|[^"])*)")|(?P<name_number>\d+))'
         '(?P<rest>.*)')
 
     _CREATE_PLUG_REST_PARSE = re.compile(
@@ -66,21 +75,27 @@ class GuerillaParser(object):
         '(?P<value>.*)$')
 
     _CMD_SET_ARG_PARSE = re.compile(
-        '"\$(?P<id>\d+)(?P<path>[\[\]|:\w\\\\/,()+ .*$-]+)?\.(?P<plug>\w+)",'
+        '"\$(?P<id>\d+)(?P<path>(\\\\"|[^"])+)?\.(?P<plug>\w+)",'
         '(?P<value>.+)', re.UNICODE)
 
     _CMD_CONNECT_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>[|:\w\\\\,$-]+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>[|:\w\\\\,$-]+)?\.(?P<out_plug>\w+))?"')
+        '"\$(?P<in_id>\d+)((?P<in_path>(\\\\"|[^"])+)?\.(?P<in_plug>\w+))?",'
+        '"\$(?P<out_id>\d+)((?P<out_path>(\\\\"|[^"])+)?\.(?P<out_plug>\w+))?"')
 
     _CMD_DEPEND_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>[|:\w]+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>[|:\w]+)?\.(?P<out_plug>\w+))?"')
+        '"\$(?P<in_id>\d+)((?P<in_path>(\\\\"|[^"])+)?\.(?P<in_plug>\w+))?",'
+        '"\$(?P<out_id>\d+)((?P<out_path>(\\\\"|[^"])+)?\.(?P<out_plug>\w+))?"')
 
-    _PARENT_PARSE = re.compile("\$(?P<id>\d+)(?P<path>[|:\w]+)?")
+    _PARENT_PARSE = re.compile('\$(?P<id>\d+)(?P<path>(\\\\"|[^"])+)?')
 
     def __init__(self, content, diagnose=False):
+        """Init the parser.
 
+        :param content: Raw Guerilla file content to parse.
+        :type content: str
+        :param diagnose: Will print some diagnostic information if True.
+        :type diagnose: bool
+        """
         super(GuerillaParser, self).__init__()
 
         # original content of the gproject, never modified
@@ -125,7 +140,9 @@ class GuerillaParser(object):
     def from_file(cls, path, *args, **kwords):
         """Construct parser reading given file `path` content.
 
-        :param path: .gproject file path.
+        This is the main method to use if you want to use the parser.
+
+        :param path: Path of the Guerilla file to parse.
         :type path: str
         :return: Parser filled with content of given `path`.
         :rtype: GuerillaParser
@@ -139,6 +156,8 @@ class GuerillaParser(object):
     def has_changed(self):
         """Return if current parsed file has changed.
 
+        A parsed file can be changed using :meth:`set_plug_value()` method.
+
         :return: True if both parser instance have same modified content.
         :rtype: bool
         """
@@ -150,9 +169,11 @@ class GuerillaParser(object):
 
     @property
     def modified_content(self):
-        """Modified parsed gproject content.
+        """Modified parsed Guerilla file content.
 
-        :return: Modified parsed gproject content.
+        A parsed file can be changed using :meth:`set_plug_value()` method.
+
+        :return: Modified parsed Guerilla file content.
         :rtype: str
         """
         if self.__mod_content is None:
@@ -163,9 +184,9 @@ class GuerillaParser(object):
 
     @property
     def original_content(self):
-        """Original (unmodified) parsed gproject content.
+        """Original (unmodified) parsed Guerilla file content.
 
-        :return: Original (unmodified) parsed gproject content.
+        :return: Original (unmodified) parsed Guerilla file content.
         :rtype: str
         """
         return self.__org_content
@@ -173,7 +194,7 @@ class GuerillaParser(object):
     def write(self, path):
         """Write modified content to given file `path`.
 
-        :param path: .gproject file path.
+        :param path: File path to write modified content in.
         :type path: str
         """
         with open(path, 'w') as f:
@@ -182,6 +203,8 @@ class GuerillaParser(object):
     @property
     def root(self):
         """Root node (top node of the parsed file).
+
+        On standard .gproject files, root node is the `Document`.
 
         :return: Root node.
         :rtype: GuerillaNode
@@ -202,22 +225,46 @@ class GuerillaParser(object):
 
         return self.__doc_format_rev
 
+    @classmethod
+    def __recursive_node(cls, node):
+        """Macro to recursively iterate over children of given `node`
+
+        :param node: Node to iterate into children.
+        :type node: GuerillaNode
+        :rtype: collections.iterator[GuerillaNode]
+        """
+        for child in node.children:
+
+            yield child
+
+            for sub_child in cls.__recursive_node(child):
+
+                yield sub_child
+
     @property
     def nodes(self):
-        """Iterate over nodes of the gproject file (except root node).
+        """Recursively iterate over nodes of the gproject file (except root
+        node).
 
-        :return: Generator of nodes of the gproject file.
+        :return: Generator of nodes of the parsed Guerilla file.
         :rtype: collections.iterator[GuerillaNode]
+        """
+        for node in self.__recursive_node(self.root):
+
+            yield node
+
+    @property
+    def plugs(self):
+        """Iterate over plugs of the gproject file.
+
+        :return: Generator of plugs of the parsed Guerilla file.
+        :rtype: collections.iterator[GuerillaPlug]
         """
         for obj in itervalues(self.objs):
 
-            if obj.type in plug_class_names:  # plug node detected
-                continue
+            if obj.type in plug_class_names:
 
-            if obj.id == 1:  # root node detected
-                continue
-
-            yield obj
+                yield obj
 
     @staticmethod
     def __clean_path(path):
@@ -256,9 +303,15 @@ class GuerillaParser(object):
 
                 if name is None:
                     name = match_arg.group('name_number')
+                    if name is not None:  # we have something !
+                        name = int(name)  # let's convert it to int
 
                 if name is None:
                     name = ""
+
+                # unescaped node names
+                if isinstance(name, str):
+                    name = re.sub(r'\\(.)', '\g<1>', name)
 
                 if parent in (r'\"\"', ''):  # GADocument or root
                     parent = None
@@ -271,10 +324,11 @@ class GuerillaParser(object):
 
                     if parent_path:
                         parent_path = self.__clean_path(parent_path)
-                        parent = self.__create_and_get_implicit_node(parent,
-                                                                     parent_path)
+                        parent = self.__create_and_get_implicit_node(
+                            parent, parent_path)
 
                 if type_ in plug_class_names:
+                    assert not isinstance(name, int), (type(name), name)
                     ###########################################################
                     # Plugs
                     ###########################################################
@@ -292,20 +346,64 @@ class GuerillaParser(object):
                         value = str(value)
                     elif plug_type == 'types.int':
                         value = int(value)
-                    elif plug_type in {'types.float', 'types.angle'}:
+                        if param is not None:
+                            param = self.__lua_dict_to_python(param)
+                    elif plug_type == 'types.bool':
+                        value = bool(value)
+                    elif plug_type in {'types.float',
+                                       'types.angle'}:
                         value = float(value)
-                    elif plug_type in 'types.color':
+                        if param is not None:
+                            param = self.__lua_dict_to_python(param)
+                    elif plug_type in {'types.color',
+                                       'types.vector',
+                                       'types.vector2',
+                                       'LUIPSTypeColor'}:
                         # "{1,0.5,0.5}" to [1,0.5,0.5]
                         value = eval(value.replace('{', '[').replace('}', ']'))
+                    elif plug_type == 'types.enum':
+                        value = str(value)
+                        # '{{"Enabled","enable"},{"Disabled","disable"}}'
+                        # TODO
+                        param = {}
+                    elif plug_type == 'types.hset':
+                        # "Diffuse,-Reflection,-Refraction,Shadows"
+                        value = set((s.replace(' ', '')
+                                     for s in value.split(',')))
+                    elif plug_type == 'LUIPSTypeInt':
+                        value = int(value)
+                    elif plug_type == 'LUIPSTypeAngle0Pi2':
+                        value = float(value)
+                    elif plug_type == 'LUIPSTypeFloat':
+                        value = float(value)
+                    elif plug_type == 'types.typeboxmode':
+                        value = str(value)
+                    elif plug_type == 'types.set':
+                        value = str(value)
+                    elif plug_type == 'types.texture':
+                        value = value[1:-1]
+                        value = str(value)
+                    elif plug_type == 'types.projectors':
+                        value = value[1:-1]
+                    elif plug_type == 'types.combo':
+                        # {"color","coordinates","density","fallof","fuel","pressure","temperature","velocity"},"density"
+                        # TODO
+                        param = {}
+                    elif plug_type == 'LUIPSTypeString':
+                        value = value[1:-1]
+                    elif plug_type == 'types.metal':
+                        value = value[1:-1]
+                    else:
+                        assert False, args
 
                     assert value is not None
 
                     # convert param to python dict
-                    # {slidermax=4,min=0} to {'slidermax': 4, 'min': 0}
-                    if param == '{}' or param is None:
+                    if any((param == '{}',
+                            param is None)):
                         param = {}
-                    else:
-                        param = self.__lua_dict_to_python(param)
+
+                    assert isinstance(param, dict), param
 
                     plug = GuerillaPlug(name, type_, parent, value, flag)
 
@@ -322,6 +420,14 @@ class GuerillaParser(object):
                     assert oid not in self.objs, oid
 
                     self.objs[oid] = node
+
+                if self.diagnose:
+                    if node.id == 1:
+                        node_path = ""
+                    else:
+                        node_path = node.path
+                    print(("Create '{node_path}' "
+                           "'{node.type}'").format(**locals()))
 
             elif cmd == 'set':
                 ###############################################################
@@ -346,7 +452,11 @@ class GuerillaParser(object):
                              org_value=org_value)
 
                 if self.diagnose:
-                    print(('Set: {node.path}.{plug_name} -> '
+                    if node.id == 1:
+                        node_path = ""
+                    else:
+                        node_path = node.path
+                    print(('Set: {node_path}.{plug_name} -> '
                            '{value}').format(**locals()))
 
             elif cmd == 'connect':
@@ -378,15 +488,17 @@ class GuerillaParser(object):
 
                 if not out_path and not out_plug_name:
                     # output is in the form "$64", an expression node
-                    print(out_node.type, out_node.path, '->',
-                          in_node.type, in_node.path, in_plug_name)
+                    if _print_expression_node_connection:
+                        print(out_node.type, out_node.path, '->',
+                              in_node.type, in_node.path, in_plug_name)
                     # TODO: support when output is $64-like
                     continue
 
                 if not in_path and not in_plug_name:
                     # same here for inputs
-                    print(in_node.type, in_node.path, '->',
-                          in_node.type, in_node.path, in_plug_name)
+                    if _print_expression_node_connection:
+                        print(in_node.type, in_node.path, '->',
+                              in_node.type, in_node.path, in_plug_name)
                     # TODO: support when input is $64-like
                     continue
 
@@ -421,8 +533,16 @@ class GuerillaParser(object):
                 in_plug.input = out_plug
 
                 if self.diagnose:
-                    print(('Connect: {out_node.path}.{out_plug_name} -> '
-                           '{in_node.path}.{in_plug_name}').format(**locals()))
+                    if out_node.id == 1:
+                        out_node_path = ""
+                    else:
+                        out_node_path = out_node.path
+                    if in_node.id == 1:
+                        in_node_path = ""
+                    else:
+                        in_node_path = in_node.path
+                    print(('Connect: {out_node_path}.{out_plug_name} -> '
+                           '{in_node_path}.{in_plug_name}').format(**locals()))
 
             elif cmd == 'depend':
                 ###############################################################
@@ -452,12 +572,20 @@ class GuerillaParser(object):
                                                                    out_path)
 
                 if self.diagnose:
-                    print(('Depend: {out_node.path}.{out_plug_name} -> '
-                           '{in_node.path}.{in_plug_name}').format(**locals()))
+                    if out_node.id == 1:
+                        out_node_path = ""
+                    else:
+                        out_node_path = out_node.path
+                    if in_node.id == 1:
+                        in_node_path = ""
+                    else:
+                        in_node_path = in_node.path
+                    print(('Depend: {out_node_path}.{out_plug_name} -> '
+                           '{in_node_path}.{in_plug_name}').format(**locals()))
 
                 # TODO: For now, dependencies are not supported
 
-            else:
+            elif _print_unknown_command:
                 print("Unknown command '{cmd}'".format(**locals()))
 
     def __create_and_get_implicit_node(self, start_node, path):
@@ -523,6 +651,8 @@ class GuerillaParser(object):
         """Convert given lua table representation to python dict.
 
         "{foo=1,bar=2}" -> {'foo': 1, 'bar': 2}
+        {min=0,max=16} to {'min': 0, max': 16}
+        {slidermax=4,min=0} to {'slidermax': 4, 'min': 0}
 
         :param lua_dict_str: Lua table representation to convert in python.
         :type lua_dict_str: str
@@ -553,8 +683,7 @@ class GuerillaParser(object):
 
             return False
 
-        elif all((raw_str.startswith('"'),
-                  raw_str.endswith('"'))):
+        elif raw_str[0] == raw_str[-1] == '"':  # surrounded by '"'?
 
             # lua string
             return str(raw_str[1:-1].replace(r'\010', '\n')
@@ -704,14 +833,10 @@ class GuerillaParser(object):
         # find node for each name in path:
         # "|foo|bar|bee" -> look for "foo" in document children, then "bar" in
         # "foo" children, etc.
-        for node_name in re.split(r'(?<!\\)\|', path)[1:]:
-
-            # and we replace "\|" by "|" to find the node
-            node_name = node_name.replace('\\|', '|')
+        for path_node_name in re.split(r'(?<!\\)\|', path)[1:]:
 
             for node in cur_node.children:
-
-                if node.name == node_name:
+                if node._name_for_path == path_node_name:
                     cur_node = node
                     break  # we've found it! let's move to the next node
 
@@ -730,6 +855,10 @@ class GuerillaParser(object):
         '$60'
         >>> p.node_to_id_path(my_other_node)
         '$37|Frustum'
+
+        In the second line above, ``my_other_node`` is an implicit node. See
+        :doc:`file format information <../file_format_info>` page for more
+        information.
 
         :param node: Implicit node to get `id path` from.
         :type node: GuerillaNode
@@ -780,7 +909,8 @@ class GuerillaParser(object):
                     .replace('&', '\\&')
 
     def set_plug_value(self, plug_values):
-        """
+        """While exposed, this method is not stable yet and could potentially
+        change in the future.
 
         :param plug_values:
         :type plug_values: list[(GuerillaPlug, str)]

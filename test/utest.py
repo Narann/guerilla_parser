@@ -22,20 +22,28 @@ import guerilla_parser
 import guerilla_parser.util as grl_util
 
 
-default_gprojects = [gproj_dir+'/1.4.14_01_default/1.4.14_01_default.gproject',
-                     gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.gproject']
+default_gprojects = [
+    gproj_dir+'/1.4.14_01_default/1.4.14_01_default.gproject',
+    gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.gproject'
+]
 
-default_glayers = [gproj_dir+'/1.4.14_01_default/1.4.14_01_default.glayer',
-                   gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.glayer']
+default_glayers = [
+    gproj_dir+'/1.4.14_01_default/1.4.14_01_default.glayer',
+    gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.glayer'
+]
 
-default_grendergraphs = [gproj_dir+'/1.4.14_01_default/1.4.14_01_default.grendergraph',
-                         gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.grendergraph']
+default_grendergraphs = [
+    gproj_dir+'/1.4.14_01_default/1.4.14_01_default.grendergraph',
+    gproj_dir+'/2.0.0a31_02_default/2.0.0a31_02_default.grendergraph'
+]
 
 gprojects = [
     gproj_dir+'/1.4.13_01/1.4.13_01.gproject',
     gproj_dir+'/1.4.19_01_node_name/1.4.19_01.gproject',
     gproj_dir+'/1.4.19_01_anim/1.4.19_01_anim.gproject',
     gproj_dir+'/2.0.0a31_01/2.0.0a31_01.gproject',
+    gproj_dir+'/2.0.7/2.0.7.gproject',
+    gproj_dir+'/2.0.7/2.0.7_ref.gproject',  # unsolvable even by Guerilla
     ]
 
 all_gprojects = [f for f in default_gprojects]
@@ -92,6 +100,9 @@ def test_generator_path_to_node(path):
         assert path in g_parsed
         p = g_parsed[path]
 
+        with self.assertRaises(guerilla_parser.PathError) as _:
+            p.path_to_node("BLAH")
+
         for node in p.nodes:
             self.assertIs(node, p.path_to_node(node.path))
 
@@ -123,6 +134,7 @@ def test_generator_nodes(path):
         paths = set()
 
         for node in p._implicit_nodes:
+            self.assertIsInstance(node, guerilla_parser.GuerillaNode)
             self.assertNotIn(node.path, paths)
             paths.add(node.path)
 
@@ -130,10 +142,33 @@ def test_generator_nodes(path):
         paths = set()
 
         for node in p.nodes:
+            self.assertIsInstance(node, guerilla_parser.GuerillaNode)
             self.assertNotIn(node.path, paths)
             paths.add(node.path)
 
     return test_nodes
+
+
+def test_generator_plugs(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_plugs(self):
+        """check each node path is unique"""
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        # plugs
+        paths = set()
+
+        for plug in p.plugs:
+            self.assertIsInstance(plug, guerilla_parser.GuerillaPlug)
+            self.assertNotIn(plug.path, paths)
+            paths.add(plug.path)
+
+    return test_plugs
 
 
 def test_generator_raises(path):
@@ -344,6 +379,10 @@ for path in all_gfiles:
     test = test_generator_nodes(path)
     setattr(TestSequence, test_name, test)
 
+    test_name = _gen_test_name('plugs', path)
+    test = test_generator_plugs(path)
+    setattr(TestSequence, test_name, test)
+
     test_name = _gen_test_name('raises', path)
     test = test_generator_raises(path)
     setattr(TestSequence, test_name, test)
@@ -508,6 +547,42 @@ class TestStringMethods(unittest.TestCase):
 
             for plug in node.plugs:
                 self.assertIs(node.get_plug(plug.name), plug)
+
+
+###############################################################################
+# Unique string test
+###############################################################################
+class TestUniqueStringRegexes(unittest.TestCase):
+
+    def test_read(self):
+
+        cls = guerilla_parser.GuerillaParser
+
+        for raw_str in ('"AttributePlug","$799","MetalProfile",4,types.metal,"$(LIBRARY)/ior/Gold/McPeak.yml"',
+                        ):
+
+            match_arg = cls._CMD_CREATE_ARG_PARSE.match(raw_str)
+
+            self.assertIsNotNone(match_arg)
+
+            self.assertEqual(match_arg.group('type'), 'AttributePlug')
+            self.assertEqual(match_arg.group('parent'), '$799')
+            self.assertEqual(match_arg.group('name'), 'MetalProfile')
+
+            rest = match_arg.group('rest')
+
+            self.assertIsNotNone(match_arg)
+
+            match_rest = cls._CREATE_PLUG_REST_PARSE.match(rest)
+
+            self.assertIsNotNone(match_rest)
+
+            self.assertEqual(match_rest.group('flag'), '4')
+            self.assertEqual(match_rest.group('type'), 'types.metal')
+            self.assertIsNone(match_rest.group('param'))
+            self.assertEqual(match_rest.group('value'),
+                             '"$(LIBRARY)/ior/Gold/McPeak.yml"')
+            #value = match_rest.group('value')
 
 
 if __name__ == '__main__':
