@@ -3,19 +3,19 @@ class GuerillaPlug(object):
     """Class representing a parsed Guerilla plug.
 
     :ivar name: Plug name.
-    :type name: str
+    :vartype name: str
     :ivar type: Plug type (often 'Plug').
-    :type type: str
+    :vartype type: str
     :ivar parent: Parent plug's node.
-    :type parent: GuerillaNode
+    :vartype parent: GuerillaNode
     :ivar value: Plug value.
-    :type value: bool|float|str
+    :vartype value: bool|float|str
     :ivar org_value: Original parser plug value.
-    :type org_value: str
+    :vartype org_value: str
     :ivar input: Plug input.
-    :type input: GuerillaPlug
+    :vartype input: GuerillaPlug
     :ivar outputs: Plug outputs.
-    :type outputs: list[GuerillaPlug]
+    :vartype outputs: list[GuerillaPlug]
     """
     def __init__(self, name, type_, parent, value=None, flag=None,
                  org_value=None):

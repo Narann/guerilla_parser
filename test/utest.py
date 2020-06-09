@@ -44,6 +44,7 @@ gprojects = [
     gproj_dir+'/2.0.0a31_01/2.0.0a31_01.gproject',
     gproj_dir+'/2.0.7/2.0.7.gproject',
     gproj_dir+'/2.0.7/2.0.7_ref.gproject',  # unsolvable even by Guerilla
+    gproj_dir+'/2.1.0b19/2.1.0b19_archreference.gproject',
     ]
 
 all_gprojects = [f for f in default_gprojects]
@@ -78,12 +79,12 @@ g_parsed = {}
 
 def test_generator_parse(path):
 
-    def test_parse(self):
+    def test_func(self):
 
         p = guerilla_parser.parse(path)
         g_parsed[path] = p
 
-    return test_parse
+    return test_func
 
 
 def test_generator_path_to_node(path):
@@ -92,7 +93,7 @@ def test_generator_path_to_node(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_path_to_node(self):
+    def test_func(self):
         """check returned path can be used to find node back"""
         # import cProfile, pstats, StringIO
         # pr = cProfile.Profile()
@@ -116,7 +117,7 @@ def test_generator_path_to_node(path):
         # ps.print_stats()
         # print(s.getvalue())
 
-    return test_path_to_node
+    return test_func
 
 
 def test_generator_nodes(path):
@@ -125,7 +126,7 @@ def test_generator_nodes(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_nodes(self):
+    def test_func(self):
         """check each node path is unique"""
         assert path in g_parsed
         p = g_parsed[path]
@@ -146,7 +147,7 @@ def test_generator_nodes(path):
             self.assertNotIn(node.path, paths)
             paths.add(node.path)
 
-    return test_nodes
+    return test_func
 
 
 def test_generator_plugs(path):
@@ -155,7 +156,7 @@ def test_generator_plugs(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_plugs(self):
+    def test_func(self):
         """check each node path is unique"""
         assert path in g_parsed
         p = g_parsed[path]
@@ -168,7 +169,7 @@ def test_generator_plugs(path):
             self.assertNotIn(plug.path, paths)
             paths.add(plug.path)
 
-    return test_plugs
+    return test_func
 
 
 def test_generator_raises(path):
@@ -177,7 +178,7 @@ def test_generator_raises(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_raises(self):
+    def test_func(self):
 
         assert path in g_parsed
         p = g_parsed[path]
@@ -196,7 +197,7 @@ def test_generator_raises(path):
         with self.assertRaises(guerilla_parser.PathError):
             grl_util.aov_node(p, 'RenderPass', 'Layer', 'TAGADAPOUETPOUET')
 
-    return test_raises
+    return test_func
 
 
 def test_generator_child_unique(path):
@@ -205,7 +206,7 @@ def test_generator_child_unique(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_child_unique(self):
+    def test_func(self):
 
         assert path in g_parsed
         p = g_parsed[path]
@@ -220,7 +221,32 @@ def test_generator_child_unique(path):
 
                 child_names.add(child.name)
 
-    return test_child_unique
+    return test_func
+
+
+def test_generator_arch_ref(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_func(self):
+
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        for node in p.nodes:
+
+            if node.type == 'ArchReference':
+
+                # this plug must exists
+                node.get_plug('ReferenceFileName')
+
+            else:
+                with self.assertRaises(KeyError):
+                    node.get_plug('ReferenceFileName')
+
+    return test_func
 
 
 def test_generator_default_gprojects(path):
@@ -229,7 +255,7 @@ def test_generator_default_gprojects(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_default_gprojects(self):
+    def test_func(self):
 
         assert path in g_parsed
         p = g_parsed[path]
@@ -293,7 +319,7 @@ def test_generator_default_gprojects(path):
         for node in p.nodes:
             self.assertEqual(node, p.path_to_node(node.path))
 
-    return test_default_gprojects
+    return test_func
 
 
 def test_generator_aovs(path):
@@ -302,7 +328,7 @@ def test_generator_aovs(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_aovs(self):
+    def test_func(self):
         """test render pass render layer and aov particularities"""
 
         assert path in g_parsed
@@ -330,7 +356,7 @@ def test_generator_aovs(path):
 
                     self.assertIs(aov, aov_2)
 
-    return test_aovs
+    return test_func
 
 
 def test_generator_default_glayers(path):
@@ -339,7 +365,7 @@ def test_generator_default_glayers(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_default_glayers(self):
+    def test_func(self):
 
         assert path in g_parsed
         p = g_parsed[path]
@@ -357,7 +383,7 @@ def test_generator_default_glayers(path):
         self.assertEqual(root.get_plug('DefaultSurfaceColor').value,
                          [0.0, 0.0, 0.0])
 
-    return test_default_glayers
+    return test_func
 
 
 class TestSequence(unittest.TestCase):
@@ -367,12 +393,12 @@ class TestSequence(unittest.TestCase):
 for path in all_gfiles:
     test_name = _gen_test_name('001_parse', path)
     test = test_generator_parse(path)
-    assert not hasattr(TestSequence, test_name)
+    assert not hasattr(TestSequence, test_name), test_name
     setattr(TestSequence, test_name, test)
 
     test_name = _gen_test_name('path_to_node', path)
     test = test_generator_path_to_node(path)
-    assert not hasattr(TestSequence, test_name)
+    assert not hasattr(TestSequence, test_name), test_name
     setattr(TestSequence, test_name, test)
 
     test_name = _gen_test_name('nodes', path)
@@ -389,6 +415,10 @@ for path in all_gfiles:
 
     test_name = _gen_test_name('child_unique', path)
     test = test_generator_child_unique(path)
+    setattr(TestSequence, test_name, test)
+
+    test_name = _gen_test_name('arch_ref', path)
+    test = test_generator_arch_ref(path)
     setattr(TestSequence, test_name, test)
 
 for path in default_gprojects:
@@ -416,7 +446,7 @@ def test_generator_set_plug_value(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_set_plug_value(self):
+    def test_func(self):
 
         p = guerilla_parser.parse(path)
 
@@ -427,7 +457,7 @@ def test_generator_set_plug_value(path):
         p.set_plug_value([(plug, 'divide')])
         self.assertEqual(plug.value, 'divide')
 
-    return test_set_plug_value
+    return test_func
 
 
 class SetPlugValueTestCase(unittest.TestCase):
@@ -446,7 +476,7 @@ def test_generator_write_file(path):
     :param path: gproject path to test
     :return: function
     """
-    def test_write_file(self):
+    def test_func(self):
 
         _, tmp_file = tempfile.mkstemp()
         os.close(_)
@@ -497,7 +527,7 @@ def test_generator_write_file(path):
 
         os.remove(tmp_file)
 
-    return test_write_file
+    return test_func
 
 
 class WriteFileTestCase(unittest.TestCase):
@@ -547,6 +577,30 @@ class TestStringMethods(unittest.TestCase):
 
             for plug in node.plugs:
                 self.assertIs(node.get_plug(plug.name), plug)
+
+
+class TestArchReferenceMethods(unittest.TestCase):
+
+    def test_read(self):
+
+        p = guerilla_parser.parse(gprojects[6])
+
+        self.assertIsInstance(p, guerilla_parser.GuerillaParser)
+
+        self.assertEqual(p.doc_format_rev, 19)
+
+        doc = p.root
+
+        self.assertEqual(doc.id, 1)
+        self.assertEqual(doc.name, 'LUIDocument')
+        self.assertEqual(doc.type, 'GADocument')
+
+        foo_node = doc.get_child('foo')
+
+        self.assertEqual(foo_node.type, 'ArchReference')
+
+        self.assertEqual(foo_node.get_plug('ReferenceFileName').value,
+                         '/path/to/file.abc')
 
 
 ###############################################################################

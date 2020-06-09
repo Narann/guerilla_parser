@@ -47,9 +47,9 @@ class GuerillaParser(object):
     """Guerilla .gproject file parser.
 
     :ivar objs: Guerilla "object" per id (parsed in ``oid[<id>]``).
-    :type objs: dict[int, GuerillaNode|GuerillaPlug]
+    :vartype objs: dict[int, GuerillaNode|GuerillaPlug]
     :ivar diagnose: Diagnose mode.
-    :type diagnose: bool
+    :vartype diagnose: bool
     """
     _PY_TO_LUA_BOOL = {True: 'true',
                        False: 'false'}
@@ -58,35 +58,39 @@ class GuerillaParser(object):
 
     # main line regex
     _LINE_PARSE = re.compile(
-        '\s*(oid\[(?P<oid>\d+)\]=)?'
-        '(?P<cmd>\w+)'
-        '\((?P<args>.*)\)\n')
+        r'\s*(oid\[(?P<oid>\d+)\]=)?'
+        r'(?P<cmd>\w+)'
+        r'\((?P<args>.*)\)\n')
 
     # per command argument regex
     _CMD_CREATE_ARG_PARSE = re.compile(
-        '"(?P<type>[a-zA-Z0-9]+)",'
-        '"(?P<parent>(\\\\"|[^"])*)",'
-        '(("(?P<name>(\\\\"|[^"])*)")|(?P<name_number>\d+))'
-        '(?P<rest>.*)')
+        r'"(?P<type>[a-zA-Z0-9]+)",'
+        r'"(?P<parent>(\\"|[^"])*)",'
+        r'(("(?P<name>(\\"|[^"])*)")|(?P<name_number>\d+))'
+        r'(?P<rest>.*)')
+
+    _CREATE_REF_REST_PARSE = re.compile(
+        r'^,"(?P<path>(\\"|[^"])+)",(true|false),(true|false),'
+        r'(?P<param>({.*}|nil)),(true|false)$')
 
     _CREATE_PLUG_REST_PARSE = re.compile(
-        '^,(?P<flag>\d+),'
-        '(?P<type>[a-zA-Z0-9.]+)( (?P<param>{.*}))?,'
-        '(?P<value>.*)$')
+        r'^,(?P<flag>\d+),'
+        r'(?P<type>[a-zA-Z0-9.]+)( (?P<param>{.*}))?,'
+        r'(?P<value>.*)$')
 
     _CMD_SET_ARG_PARSE = re.compile(
-        '"\$(?P<id>\d+)(?P<path>(\\\\"|[^"])+)?\.(?P<plug>\w+)",'
-        '(?P<value>.+)', re.UNICODE)
+        r'"\$(?P<id>\d+)(?P<path>(\\"|[^"])+)?\.(?P<plug>\w+)",'
+        r'(?P<value>.+)', re.UNICODE)
 
     _CMD_CONNECT_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>(\\\\"|[^"])+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>(\\\\"|[^"])+)?\.(?P<out_plug>\w+))?"')
+        r'"\$(?P<in_id>\d+)((?P<in_path>(\\"|[^"])+)?\.(?P<in_plug>\w+))?",'
+        r'"\$(?P<out_id>\d+)((?P<out_path>(\\"|[^"])+)?\.(?P<out_plug>\w+))?"')
 
     _CMD_DEPEND_ARG_PARSE = re.compile(
-        '"\$(?P<in_id>\d+)((?P<in_path>(\\\\"|[^"])+)?\.(?P<in_plug>\w+))?",'
-        '"\$(?P<out_id>\d+)((?P<out_path>(\\\\"|[^"])+)?\.(?P<out_plug>\w+))?"')
+        r'"\$(?P<in_id>\d+)((?P<in_path>(\\"|[^"])+)?\.(?P<in_plug>\w+))?",'
+        r'"\$(?P<out_id>\d+)((?P<out_path>(\\"|[^"])+)?\.(?P<out_plug>\w+))?"')
 
-    _PARENT_PARSE = re.compile('\$(?P<id>\d+)(?P<path>(\\\\"|[^"])+)?')
+    _PARENT_PARSE = re.compile(r'\$(?P<id>\d+)(?P<path>(\\"|[^"])+)?')
 
     def __init__(self, content, diagnose=False):
         """Init the parser.
@@ -273,7 +277,7 @@ class GuerillaParser(object):
         "|foo|sphereShape\\\\$" -> "|foo|sphereShape$"
         "|bar|clous\\\\[1\\\\]" -> "|foo|clous[1]"
         """
-        return re.sub(r'\\\\(.)', '\g<1>', path)
+        return re.sub(r'\\\\(.)', r'\g<1>', path)
 
     def __parse_nodes(self):
         """Parse commands in Guerilla file.
@@ -311,7 +315,7 @@ class GuerillaParser(object):
 
                 # unescaped node names
                 if isinstance(name, str):
-                    name = re.sub(r'\\(.)', '\g<1>', name)
+                    name = re.sub(r'\\(.)', r'\g<1>', name)
 
                 if parent in (r'\"\"', ''):  # GADocument or root
                     parent = None
@@ -344,23 +348,27 @@ class GuerillaParser(object):
                     # convert value to python type
                     if plug_type == 'types.string':
                         value = str(value)
-                    elif plug_type == 'types.int':
-                        value = int(value)
+                    elif plug_type in {'types.float',
+                                       'types.angle',
+                                       'types.radians',
+                                       'LUIPSTypeNumber'}:
+                        value = float(value)
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
                     elif plug_type == 'types.bool':
                         value = bool(value)
-                    elif plug_type in {'types.float',
-                                       'types.angle'}:
-                        value = float(value)
+                    elif plug_type == 'types.int':
+                        value = int(value)
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
                     elif plug_type in {'types.color',
                                        'types.vector',
                                        'types.vector2',
-                                       'LUIPSTypeColor'}:
-                        # "{1,0.5,0.5}" to [1,0.5,0.5]
-                        value = eval(value.replace('{', '[').replace('}', ']'))
+                                       'LUIPSTypeColor',
+                                       'LUIPSTypeVector',
+                                       'LUIPSTypePoint'}:
+                        # "{1,0.5,0.5}" to (1,0.5,0.5)
+                        value = eval(value.replace('{', '(').replace('}', ')'))
                     elif plug_type == 'types.enum':
                         value = str(value)
                         # '{{"Enabled","enable"},{"Disabled","disable"}}'
@@ -371,7 +379,12 @@ class GuerillaParser(object):
                         value = set((s.replace(' ', '')
                                      for s in value.split(',')))
                     elif plug_type == 'LUIPSTypeInt':
-                        value = int(value)
+                        if value == 'nil':
+                            # Tested in Guerilla 2.1, a 'nil' int value return
+                            # None. So we reproduce this behavior here
+                            value = None
+                        else:
+                            value = int(value)
                     elif plug_type == 'LUIPSTypeAngle0Pi2':
                         value = float(value)
                     elif plug_type == 'LUIPSTypeFloat':
@@ -393,10 +406,12 @@ class GuerillaParser(object):
                         value = value[1:-1]
                     elif plug_type == 'types.metal':
                         value = value[1:-1]
+                    elif plug_type == 'LUIPSTypeFloat01Open':
+                        value = float(value)
+                    elif plug_type == 'types.materials':
+                        value = value[1:-1]
                     else:
                         assert False, args
-
-                    assert value is not None
 
                     # convert param to python dict
                     if any((param == '{}',
@@ -420,6 +435,19 @@ class GuerillaParser(object):
                     assert oid not in self.objs, oid
 
                     self.objs[oid] = node
+
+                    if type_ == 'ArchReference':
+                        #######################################################
+                        # ArchReference
+                        #######################################################
+                        rest = match_arg.group('rest')
+
+                        match_rest = self._CREATE_REF_REST_PARSE.match(rest)
+
+                        path = match_rest.group('path')
+                        param = match_rest.group('param')
+
+                        GuerillaPlug('ReferenceFileName', 'Plug', node, path)
 
                 if self.diagnose:
                     if node.id == 1:
@@ -474,6 +502,15 @@ class GuerillaParser(object):
                 out_plug_name = match_arg.group('out_plug')
 
                 in_node = self.objs[in_oid]
+
+                if out_oid is 0 and 0 not in self.objs:
+                    # 0 is a special value referencing root document, we have a
+                    # glayer trying to connect to document root attribute, we
+                    # don't support this.
+                    print(("Trying to connect to document reference "
+                           "'{args}'").format(**locals()))
+                    continue
+
                 out_node = self.objs[out_oid]
 
                 if in_path:
@@ -557,6 +594,15 @@ class GuerillaParser(object):
                 out_oid = int(match_arg.group('out_id'))
                 out_path = match_arg.group('out_path')
                 out_plug_name = match_arg.group('out_plug')
+
+                # Some .grendergraph/.glayer files attempts to connect to
+                # Guerilla root node. This node doesn't exists in the context
+                # of parsing:
+                # depend("$17.Out","$0|Preferences.ShutterClose")
+                if out_oid is 0 and 0 not in self.objs:
+                    print(("Trying to depends on document reference "
+                           "'{args}'").format(**locals()))
+                    continue
 
                 in_node = self.objs[in_oid]
                 out_node = self.objs[out_oid]
@@ -660,8 +706,8 @@ class GuerillaParser(object):
         :rtype: dict
         """
         # reformat
-        lua_dict_str = re.sub('([a-zA-Z0-9_-]+)=([a-zA-Z0-9_-]+)',
-                              '\'\g<1>\':\g<2>',
+        lua_dict_str = re.sub(r'([a-zA-Z0-9_-]+)=([a-zA-Z0-9_-]+)',
+                              r"'\g<1>':\g<2>",
                               lua_dict_str)
         # and eval as python expression
         return eval(lua_dict_str.replace('=', ':'))
@@ -707,12 +753,12 @@ class GuerillaParser(object):
             # because we loose the matrix.create and transform.create
             # information when setting plug values
             '''elif raw_str.startswith('matrix.create{'):
-    
+
                 content = raw_str[len('matrix.create{'):-1]
                 return [float(v) for v in content.split(',')]
-    
+
             elif raw_str.startswith('transform.create{'):
-    
+
                 content = raw_str[len('transform.create{'):-1]
                 return [float(v) for v in content.split(',')]'''
 
@@ -941,11 +987,11 @@ class GuerillaParser(object):
             # we need the second
             # the job of the replace function (outside the loop) is to
             # recreated the latest group
-            regex_str = ['(\s*set\(")(',
-                         plug_path.replace('$', '\$').replace('.', '\.'),
+            regex_str = [r'(\s*set\(")(',
+                         plug_path.replace('$', '\\$').replace('.', '\\.'),
                          ')(",',
                          self.__escape_str_for_regex(old_lua_value),
-                         '\)\n)']
+                         '\\)\n)']
 
             regex_list.append(''.join(regex_str))
 

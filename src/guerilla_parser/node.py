@@ -8,15 +8,15 @@ class GuerillaNode(object):
     """Class representing a parsed Guerilla node.
 
     :ivar id: Node id (value in parsed expression ``oid[<id>]=``).
-    :type id: int
+    :vartype id: int
     :ivar type: Node type.
-    :type type: str
+    :vartype type: str
     :ivar parent: Node parent.
-    :type parent: GuerillaNode
+    :vartype parent: GuerillaNode
     :ivar children: Node children.
-    :type children: list[GuerillaNode]
+    :vartype children: list[GuerillaNode]
     :ivar plug_dict: Node plug by name.
-    :type plug_dict: dict[str, GuerillaPlug]
+    :vartype plug_dict: dict[str, GuerillaPlug]
     """
     def __init__(self, id_, name, type_, parent=None):
         """Init node.

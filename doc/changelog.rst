@@ -4,6 +4,33 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
+0.7.0 (2020 06 09)
+------------------
+
+Fix ``LUIPSTypeInt`` with ``'nil'`` value now return ``None``.
+
+Fix new plug type parsing:
+
+* ``LUIPSTypeFloat01Open`` as ``float``.
+* ``types.materials`` as ``str``.
+* ``LUIPSTypeVector`` as ``tuple``.
+* ``LUIPSTypePoint`` as ``tuple``.
+* ``LUIPSTypeNumber`` as ``float``.
+* ``types.radians`` as ``float``.
+
+Fix doc to add instance variable type.
+
+Improve ``ArchReference`` node type support adding a ``ReferenceFileName`` plug
+to such node.
+
+Fix some deprecation warning on Python 3.8.
+
+``connect()`` and ``depend()`` commands referencing document root attributes
+on ``.glayer`` and ``.grendergraph`` are skipped:
+
+    connect("$1.AspectRatio","$0.ProjectAspectRatio")
+    depend("$17.Out","$0|Preferences.ShutterClose")
+
 0.6.0 (2018 02 27)
 ------------------
 
@@ -78,8 +105,7 @@ Documentation:
 Support new characters:
 
 * slash (``/``) in path of ``set()`` commands.
-* comma (``,``), dollar (``$``) and minus (``-``) in path of ``connect()``
-commands.
+* comma (``,``), dollar (``$``) and minus (``-``) in path of ``connect()`` commands.
 
 Improve documentation formating.
 

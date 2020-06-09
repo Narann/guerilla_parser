@@ -32,3 +32,13 @@ Conversions
 * Missing lua to python conversion `'matrix.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`.
 * Missing lua to python conversion `'transform.create{-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1}'`.
 * Curve unpacking is not supported.
+
+Glayer connection to document
+-----------------------------
+
+Some ``.glayer``/``.grendergraph`` documents have a connection or depend command to root document:
+
+    connect("$1.AspectRatio","$0.ProjectAspectRatio")
+    depend("$17.Out","$0|Preferences.ShutterClose")
+
+Such connections are skipped when those files are parsed because document structure doesn't exists.

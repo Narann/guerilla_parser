@@ -21,6 +21,17 @@ This snippet use :py:meth:`GuerillaParser.nodes <guerilla_parser.GuerillaParser.
     >>> for node in p.nodes:
     >>>     print node.path, node.type
 
+Get every reference files
+-------------------------
+
+This snippet list every reference file.
+
+This can be usefull to list Alembic files from a gproject.
+
+    >>> for node in p.nodes:
+    >>>     if node.type == 'ArchReference':
+    >>>         print node.get_plug('ReferenceFileName')
+
 Get root node
 -------------
 

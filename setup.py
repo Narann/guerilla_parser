@@ -1,5 +1,6 @@
 import os.path
 import sys
+import m2r
 from setuptools import setup
 
 _repo_path = os.path.split(__file__)[0]
@@ -7,7 +8,12 @@ sys.path.append(os.path.join(_repo_path, 'src'))
 
 import guerilla_parser
 
-setup(name='guerilla_parser',
+with open('README.md', 'rt') as f:
+    long_description = f.read()
+
+long_description = m2r.convert(long_description)
+
+setup(name='guerilla-parser',
       version=guerilla_parser.__version__,
       license='MIT',
       author='Dorian Fevrier',
@@ -15,9 +21,11 @@ setup(name='guerilla_parser',
       author_email='fevrier.dorian@yahoo.fr',
       description=('This python module provide an easy way to parse Guerilla '
                    'files and navigate into parsed nodes and plugs.'),
-      long_description=open('README.md').read(),
+      long_description=long_description,
       include_package_data=True,  # enable MANIFEST.in
       keywords='guerilla, parser, gproject',
+      packages=['guerilla_parser'],
+      package_dir={'': 'src'},
       classifiers=[
           'Development Status :: 3 - Alpha',
           'License :: OSI Approved :: MIT License',
@@ -25,5 +33,8 @@ setup(name='guerilla_parser',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
+          'Operating System :: OS Independent',
       ],
+      python_requires='>=2.7',
+      options={'bdist_wheel': {'universal': True}},
       )
