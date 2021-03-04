@@ -54,7 +54,7 @@ def name_to_path_name(name):
 
 
 def aov_node(parser, rp_name, rl_name, aov_name):
-    """Utility function to get an aov from it's given info.
+    """Utility function to get an AOV from it's given info.
 
     AOV nodes can't be retrieved using a simple path like
     "|RenderPass|Layer|Beauty" and the AOV name ("Beauty" here) is not the
@@ -89,10 +89,10 @@ def aov_node(parser, rp_name, rl_name, aov_name):
             aov_nodes.append(aov_node)
 
     if len(aov_nodes) == 0:
-        raise PathError(("Can't find aov '{rp_name}', '{rl_name}', "
+        raise PathError(("Can't find AOV '{rp_name}', '{rl_name}', "
                          "'{aov_name}'").format(**locals()))
     elif len(aov_nodes) == 2:
-        raise PathError(("More than one aov found '{rp_name}', "
+        raise PathError(("More than one AOV found '{rp_name}', "
                          "'{rl_name}', '{aov_name}'").format(**locals()))
     else:
         assert len(aov_nodes) == 1, aov_nodes

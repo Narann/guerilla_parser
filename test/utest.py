@@ -7,7 +7,8 @@ import unittest
 
 
 def _get_parent_dir(path):
-    """utility function to get parent dir"""
+    """utility function to get parent dir
+    """
     return os.path.abspath(os.path.join(os.path.abspath(path), os.pardir))
 
 
@@ -62,7 +63,6 @@ all_gfiles += [f for f in default_grendergraphs]
 # test_generator_<test_name> return a function to test given path
 #  '-> test_<test_name> function that run the test
 
-
 def _gen_test_name(name, path):
     """Macro to properly generate test method name from given test `name` and
     file `path`
@@ -94,7 +94,8 @@ def test_generator_path_to_node(path):
     :return: function
     """
     def test_func(self):
-        """check returned path can be used to find node back"""
+        """check returned path can be used to find node back
+        """
         # import cProfile, pstats, StringIO
         # pr = cProfile.Profile()
         # pr.enable()
@@ -120,6 +121,27 @@ def test_generator_path_to_node(path):
     return test_func
 
 
+def test_generator_path_to_plug(path):
+    """Generate a function testing given `path`.
+
+    :param path: gproject path to test
+    :return: function
+    """
+    def test_func(self):
+        """check returned path can be used to find plug back
+        """
+        assert path in g_parsed
+        p = g_parsed[path]
+
+        with self.assertRaises(guerilla_parser.PathError) as _:
+            p.path_to_plug("BLAH")
+
+        for plug in p.plugs:
+            self.assertIs(plug, p.path_to_plug(plug.path))
+
+    return test_func
+
+
 def test_generator_nodes(path):
     """Generate a function testing given `path`.
 
@@ -127,7 +149,8 @@ def test_generator_nodes(path):
     :return: function
     """
     def test_func(self):
-        """check each node path is unique"""
+        """check each node path is unique
+        """
         assert path in g_parsed
         p = g_parsed[path]
 
@@ -157,7 +180,8 @@ def test_generator_plugs(path):
     :return: function
     """
     def test_func(self):
-        """check each node path is unique"""
+        """check each plug path is unique
+        """
         assert path in g_parsed
         p = g_parsed[path]
 
@@ -329,7 +353,8 @@ def test_generator_aovs(path):
     :return: function
     """
     def test_func(self):
-        """test render pass render layer and aov particularities"""
+        """test render pass render layer and AOV particularities
+        """
 
         assert path in g_parsed
         p = g_parsed[path]
@@ -398,6 +423,11 @@ for path in all_gfiles:
 
     test_name = _gen_test_name('path_to_node', path)
     test = test_generator_path_to_node(path)
+    assert not hasattr(TestSequence, test_name), test_name
+    setattr(TestSequence, test_name, test)
+
+    test_name = _gen_test_name('path_to_plug', path)
+    test = test_generator_path_to_plug(path)
     assert not hasattr(TestSequence, test_name), test_name
     setattr(TestSequence, test_name, test)
 

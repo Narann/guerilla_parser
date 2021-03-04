@@ -5,6 +5,6 @@
 
 This python module provide an easy way to parse Guerilla files and navigate into parsed nodes and plugs.
 
-It support Python 2.7 and 3.4, 3.5 and 3.6.
+It support Python 2.7 and 3.4 to 3.8.
 
 Full documentation is available [here](http://guerilla-parser.readthedocs.io). It includes reference, a changelog and many examples.

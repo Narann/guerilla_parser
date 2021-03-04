@@ -4,7 +4,27 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
-0.7.0 (2020 06 09)
+0.8.0 (2021 03 06)
+------------------
+
+Officially support Python 3.7 and 3.8.
+
+Add method ``GuerillaParser.path_to_plug(path)``` to find plug from its path.
+
+Fix ``GuerillaParser.plugs`` property didn't return all plugs properly.
+
+Fix crash when nodes are created with a negative zero ``-0`` as name.
+
+Limit parser crash in some specific cases on corrupted file values enclosing
+regex: ``0,5`` (comma) no more match float regex.
+
+* Uppercase "aov" in docstrings, documentation and exceptions.
+* Cleanup .gitignore, add building folders.
+* Update copyright date.
+* Docstring and documentation cleanup.
+* Add support for ``types.radians0pi4`` plug type as ``float``.
+
+0.7.0 (2020 06 09)
 ------------------
 
 Fix ``LUIPSTypeInt`` with ``'nil'`` value now return ``None``.

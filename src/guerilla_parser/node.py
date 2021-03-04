@@ -127,7 +127,7 @@ class GuerillaNode(object):
     def display_name(self):
         """Node name shown in UI.
 
-        Some nodes (render graph plugs, aovs, etc.) have a distinction between
+        Some nodes (render graph plugs, AOVs, etc.) have a distinction between
         internal name and UI display name. This property return UI name (aka
         PlugName attribute) if available.
 

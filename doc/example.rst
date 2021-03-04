@@ -26,7 +26,7 @@ Get every reference files
 
 This snippet list every reference file.
 
-This can be usefull to list Alembic files from a gproject.
+This can be useful to list Alembic files from a gproject.
 
     >>> for node in p.nodes:
     >>>     if node.type == 'ArchReference':
@@ -84,8 +84,17 @@ Get node from its path
 
     >>> p.path_to_node('|RenderPass|Layer|Input1')
 
+Get node plug from its name
+---------------------------
 
-Iterate over render passes, render ayers and aovs
+    >>> node.get_plug('NodePos')
+
+Get plug from it's path
+-----------------------
+
+    >>> p.path_to_plug('|RenderPass.BrdfSamples')
+
+Iterate over render passes, render ayers and AOVs
 -------------------------------------------------
 
     >>> rp_iter = (n for n in p.nodes if n.type == 'RenderPass')
@@ -108,13 +117,3 @@ Iterate over every plug of a node
     >>>     # if this plug is connected to other plug, we print it
     >>>     for out_plug in plug.outputs:
     >>>         print plug.path, "->", out_plug.path
-
-Get specified plug (from its `PlugName` attribute)
---------------------------------------------------
-
-    >>> node.get_plug('NodePos')
-
-Get node from it's path
------------------------
-
-    >>> rp = p.path_to_node('|RenderPass')

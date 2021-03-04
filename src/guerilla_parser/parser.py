@@ -9,7 +9,6 @@ from .node import GuerillaNode
 from .plug import GuerillaPlug
 
 from .util import iteritems
-from .util import itervalues
 from .util import open_
 
 
@@ -37,10 +36,10 @@ plug_class_names = {'BakePlug',
                     'AttributeShaderPlug'}
 
 # floating value regex "4.64"
-_FLOAT_PARSE = re.compile('[0-9.-]+')
+_FLOAT_PARSE = re.compile('^[0-9.-]+$')
 
 # float table {127.5,-80, ...}
-_FLOAT_TABLE_PARSE = re.compile('{[0-9.,-]+}')
+_FLOAT_TABLE_PARSE = re.compile('^{[0-9.,-]+}$')
 
 
 class GuerillaParser(object):
@@ -66,7 +65,7 @@ class GuerillaParser(object):
     _CMD_CREATE_ARG_PARSE = re.compile(
         r'"(?P<type>[a-zA-Z0-9]+)",'
         r'"(?P<parent>(\\"|[^"])*)",'
-        r'(("(?P<name>(\\"|[^"])*)")|(?P<name_number>\d+))'
+        r'(("(?P<name>(\\"|[^"])*)")|(?P<name_number>-?\d+))'
         r'(?P<rest>.*)')
 
     _CREATE_REF_REST_PARSE = re.compile(
@@ -130,7 +129,7 @@ class GuerillaParser(object):
         """Compare the content of this instance with the content of an other
         parser.
 
-        :param other: Other parser instance to compare content of.
+        :param other: Other parser instance to compare content from.
         :type other: GuerillaParser
         :return: True if both parser instance have same modified content.
         :rtype: bool
@@ -264,11 +263,9 @@ class GuerillaParser(object):
         :return: Generator of plugs of the parsed Guerilla file.
         :rtype: collections.iterator[GuerillaPlug]
         """
-        for obj in itervalues(self.objs):
-
-            if obj.type in plug_class_names:
-
-                yield obj
+        for node in self.nodes:
+            for plug in node.plugs:
+                yield plug
 
     @staticmethod
     def __clean_path(path):
@@ -410,6 +407,8 @@ class GuerillaParser(object):
                         value = float(value)
                     elif plug_type == 'types.materials':
                         value = value[1:-1]
+                    elif plug_type == 'types.radians0pi4':
+                        value = float(value)
                     else:
                         assert False, args
 
@@ -855,7 +854,7 @@ class GuerillaParser(object):
         >>> p.path_to_node('$65|bar|bee')
         GuerillaNode('bee', 10, 'primitive')
 
-        :param path: Path to get node of.
+        :param path: Path to get node from.
         :type path: str
         :return: Node found from given `path`.
         :rtype: GuerillaNode
@@ -891,9 +890,47 @@ class GuerillaParser(object):
 
         return cur_node
 
+    def path_to_plug(self, path):
+        """Find and return plug at given `path`.
+
+        :Example:
+
+        >>> p.path_to_plug('|foo|bar.DiffuseColor')
+        GuerillaPlug('DiffuseColor', 'Plug', '|foo|bar|bee')
+
+        :param path: Path to get plug from.
+        :type path: str
+        :return: Plug found from given `path`.
+        :rtype: GuerillaPlug
+        :raises PathError: If path doen't point to a plugs.
+        """
+        # ('|foo|bar', 'DiffuseColor')
+        try:
+            node_path, plug_name = path.rsplit('.', 1)
+        except ValueError:
+            raise PathError("No plug in path '{path}'".format(
+                **locals()))
+
+        if node_path:
+            node = self.path_to_node(node_path)
+        else:
+            node = self.root  # plug is connected to root document
+
+        try:
+            return node.get_plug(plug_name)
+        except KeyError:
+            raise PathError("Can't find plug '{}' in node '{}'".format(
+                plug_name, node.path))
+
     @staticmethod
     def node_to_id_path(node):
         """Return the shortest `id path` for given `node`.
+
+        Node id paths are paths relative to the first parent node with an id.
+
+        This methode is mostly for internal use to find plug value in
+        ``set_plug_value()`` but is exposed to the user for his own
+        convinience; debugging, file compare, etc.
 
         :Example:
 

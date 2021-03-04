@@ -1,3 +1,15 @@
+# distribution building
+build
+dist
+
+# virtual envs
+*-pyenv*
+
+# documentation building
 doc/_build
+
+# IDE workspace
 .idea
+
+# python bytecode
 *.py[cod]

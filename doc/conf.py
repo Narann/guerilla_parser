@@ -14,6 +14,7 @@ import sphinx_rtd_theme
 # Extensions
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode'
 ]
@@ -31,7 +32,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Guerilla parser'
-copyright = u'2016-2018, Dorian Fevrier'
+copyright = u'2016-2021, Dorian Fevrier'
 
 # Version
 version = guerilla_parser.__version__
@@ -66,7 +67,8 @@ intersphinx_mapping = {'python': ('https://docs.python.org/2', None)}
 
 
 def autodoc_skip(app, what, name, obj, skip, options):
-    """Don't skip __init__ method for autodoc"""
+    """Don't skip __init__ method for autodoc
+    """
     if name == '__init__':
         return False
 
