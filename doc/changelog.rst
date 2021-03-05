@@ -4,6 +4,12 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
+0.8.1 (2021 03 07)
+------------------
+
+* Add support for ``types.animationmode`` plug type as ``str``.
+
+
 0.8.0 (2021 03 06)
 ------------------
 

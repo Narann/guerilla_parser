@@ -409,6 +409,8 @@ class GuerillaParser(object):
                         value = value[1:-1]
                     elif plug_type == 'types.radians0pi4':
                         value = float(value)
+                    elif plug_type == 'types.animationmode':
+                        value = value[1:-1]
                     else:
                         assert False, args
 
