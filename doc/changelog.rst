@@ -4,6 +4,12 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
+0.8.2 (2021 04 01)
+------------------
+
+* Add support for ``types.colorspaces`` plug type as ``str``.
+
+
 0.8.1 (2021 03 07)
 ------------------
 

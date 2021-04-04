@@ -35,6 +35,50 @@ plug_class_names = {'BakePlug',
                     'AttributePlug',
                     'AttributeShaderPlug'}
 
+# types always having double quoted string ('"loop"')
+parse_type_double_quoted_str = {
+    'types.texture',
+    'types.projectors',
+    'LUIPSTypeString',
+    'types.metal',
+    'types.materials',
+    'types.animationmode',
+    'types.colorspaces',
+}
+
+# types being simple floats (no parameters)
+parse_type_float = {
+    'LUIPSTypeFloat',
+    'LUIPSTypeAngle0Pi2',
+    'LUIPSTypeFloat01Open',
+    'types.radians0pi4',
+}
+
+# types being floats with parameters (limits, etc.)
+parse_type_float_with_param = {
+    'types.float',
+    'types.angle',
+    'types.radians',
+    'LUIPSTypeNumber',
+}
+
+# types being tuple
+parse_type_tuple = {
+    'types.color',
+    'types.vector',
+    'types.vector2',
+    'LUIPSTypeColor',
+    'LUIPSTypeVector',
+    'LUIPSTypePoint'
+}
+
+# types being simple strings (often double quoted, but sometimes not)
+parse_type_string = {
+    'types.string',
+    'types.set',
+    'types.typeboxmode',
+}
+
 # floating value regex "4.64"
 _FLOAT_PARSE = re.compile('^[0-9.-]+$')
 
@@ -343,12 +387,9 @@ class GuerillaParser(object):
                     value = match_rest.group('value')
 
                     # convert value to python type
-                    if plug_type == 'types.string':
+                    if plug_type in parse_type_string:
                         value = str(value)
-                    elif plug_type in {'types.float',
-                                       'types.angle',
-                                       'types.radians',
-                                       'LUIPSTypeNumber'}:
+                    elif plug_type in parse_type_float_with_param:
                         value = float(value)
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
@@ -358,12 +399,7 @@ class GuerillaParser(object):
                         value = int(value)
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
-                    elif plug_type in {'types.color',
-                                       'types.vector',
-                                       'types.vector2',
-                                       'LUIPSTypeColor',
-                                       'LUIPSTypeVector',
-                                       'LUIPSTypePoint'}:
+                    elif plug_type in parse_type_tuple:
                         # "{1,0.5,0.5}" to (1,0.5,0.5)
                         value = eval(value.replace('{', '(').replace('}', ')'))
                     elif plug_type == 'types.enum':
@@ -382,35 +418,14 @@ class GuerillaParser(object):
                             value = None
                         else:
                             value = int(value)
-                    elif plug_type == 'LUIPSTypeAngle0Pi2':
+                    elif plug_type in parse_type_float:
                         value = float(value)
-                    elif plug_type == 'LUIPSTypeFloat':
-                        value = float(value)
-                    elif plug_type == 'types.typeboxmode':
-                        value = str(value)
-                    elif plug_type == 'types.set':
-                        value = str(value)
-                    elif plug_type == 'types.texture':
-                        value = value[1:-1]
-                        value = str(value)
-                    elif plug_type == 'types.projectors':
+                    elif plug_type in parse_type_double_quoted_str:
                         value = value[1:-1]
                     elif plug_type == 'types.combo':
                         # {"color","coordinates","density","fallof","fuel","pressure","temperature","velocity"},"density"
                         # TODO
                         param = {}
-                    elif plug_type == 'LUIPSTypeString':
-                        value = value[1:-1]
-                    elif plug_type == 'types.metal':
-                        value = value[1:-1]
-                    elif plug_type == 'LUIPSTypeFloat01Open':
-                        value = float(value)
-                    elif plug_type == 'types.materials':
-                        value = value[1:-1]
-                    elif plug_type == 'types.radians0pi4':
-                        value = float(value)
-                    elif plug_type == 'types.animationmode':
-                        value = value[1:-1]
                     else:
                         assert False, args
 

@@ -47,6 +47,7 @@ gprojects = [
     gproj_dir+'/2.0.7/2.0.7_ref.gproject',  # unsolvable even by Guerilla
     gproj_dir+'/2.1.0b19/2.1.0b19_archreference.gproject',
     gproj_dir+'/2.3.0b16/2.3.0b16.gproject',
+    gproj_dir+'/2.3.0b16/texture_colorspace.gproject',
     gproj_dir+'/2.1.3/animmode_loop.gproject',
     ]
 
