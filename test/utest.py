@@ -636,6 +636,27 @@ class TestArchReferenceMethods(unittest.TestCase):
                          '/path/to/file.abc')
 
 
+class TestUniqueAttr(unittest.TestCase):
+
+    def test_types_multistrings(self):
+
+        path = gproj_dir + '/2.3.0b16/texture_switch.gproject'
+
+        p = guerilla_parser.parse(path)
+
+        node = p.objs[53]
+
+        plug = node.get_plug('Files')
+
+        self.assertEqual(plug.name, 'Files')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'AttributeShaderPlug')
+        self.assertEqual(plug.value, ['$(SAMPLES)/sprite.1.png',
+                                      '$(SAMPLES)/sprite.2.png',
+                                      '$(SAMPLES)/sprite.3.png',
+                                      '$(SAMPLES)/sprite.4.png'])
+
+
 ###############################################################################
 # Unique string test
 ###############################################################################

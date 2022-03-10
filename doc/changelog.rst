@@ -4,6 +4,14 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
+0.8.3 (2022 03 10)
+------------------
+
+* Add support for ``types.multistrings`` plug type.
+* Leave the a ``types.float`` value to string if float parsing fail.
+* Support spaces in plug names (``"$1.Min Trace Depth"``).
+
+
 0.8.2 (2021 04 01)
 ------------------
 

@@ -122,7 +122,7 @@ class GuerillaParser(object):
         r'(?P<value>.*)$')
 
     _CMD_SET_ARG_PARSE = re.compile(
-        r'"\$(?P<id>\d+)(?P<path>(\\"|[^"])+)?\.(?P<plug>\w+)",'
+        r'"\$(?P<id>\d+)(?P<path>(\\"|[^"])+)?\.(?P<plug>[\w\s]+)",'
         r'(?P<value>.+)', re.UNICODE)
 
     _CMD_CONNECT_ARG_PARSE = re.compile(
@@ -390,7 +390,11 @@ class GuerillaParser(object):
                     if plug_type in parse_type_string:
                         value = str(value)
                     elif plug_type in parse_type_float_with_param:
-                        value = float(value)
+                        # value = float(value)
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass  # leave the value as float
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
                     elif plug_type == 'types.bool':
@@ -426,6 +430,9 @@ class GuerillaParser(object):
                         # {"color","coordinates","density","fallof","fuel","pressure","temperature","velocity"},"density"
                         # TODO
                         param = {}
+                    elif plug_type == 'types.multistring':
+                        value = value[1:-1].split('\\010')
+                        param = self.__lua_dict_to_python(param)
                     else:
                         assert False, args
 
