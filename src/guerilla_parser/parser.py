@@ -398,7 +398,7 @@ class GuerillaParser(object):
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
                     elif plug_type == 'types.bool':
-                        value = bool(value)
+                        value = self._LUA_TO_PY_BOOL[value]
                     elif plug_type == 'types.int':
                         value = int(value)
                         if param is not None:
