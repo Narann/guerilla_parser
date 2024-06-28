@@ -32,7 +32,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Guerilla parser'
-copyright = u'2016-2021, Dorian Fevrier'
+copyright = u'2016-2024, Dorian Fevrier'
 
 # Version
 version = guerilla_parser.__version__
@@ -77,4 +77,3 @@ def autodoc_skip(app, what, name, obj, skip, options):
 
 def setup(app):
     app.connect('autodoc-skip-member', autodoc_skip)
-

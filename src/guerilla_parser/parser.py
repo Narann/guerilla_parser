@@ -49,6 +49,7 @@ parse_type_double_quoted_str = {
 # types being simple floats (no parameters)
 parse_type_float = {
     'LUIPSTypeFloat',
+    'LUIPSTypeAngle',
     'LUIPSTypeAngle0Pi2',
     'LUIPSTypeFloat01Open',
     'types.radians0pi4',
@@ -398,7 +399,7 @@ class GuerillaParser(object):
                         if param is not None:
                             param = self.__lua_dict_to_python(param)
                     elif plug_type == 'types.bool':
-                        value = bool(value)
+                        value = self._LUA_TO_PY_BOOL[value]
                     elif plug_type == 'types.int':
                         value = int(value)
                         if param is not None:
@@ -433,6 +434,8 @@ class GuerillaParser(object):
                     elif plug_type == 'types.multistring':
                         value = value[1:-1].split('\\010')
                         param = self.__lua_dict_to_python(param)
+                    elif plug_type == 'types.text':
+                        value = value[1:-1].replace('\\010', '\n')
                     else:
                         assert False, args
 

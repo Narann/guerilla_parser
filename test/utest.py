@@ -49,6 +49,7 @@ gprojects = [
     gproj_dir+'/2.3.0b16/2.3.0b16.gproject',
     gproj_dir+'/2.3.0b16/texture_colorspace.gproject',
     gproj_dir+'/2.1.3/animmode_loop.gproject',
+    gproj_dir+'/2.3.15/types_text.gproject',
     ]
 
 all_gprojects = [f for f in default_gprojects]
@@ -655,6 +656,21 @@ class TestUniqueAttr(unittest.TestCase):
                                       '$(SAMPLES)/sprite.2.png',
                                       '$(SAMPLES)/sprite.3.png',
                                       '$(SAMPLES)/sprite.4.png'])
+
+    def test_types_bool(self):
+
+        path = gproj_dir + '/2.0.0a31_01/2.0.0a31_01.gproject'
+
+        p = guerilla_parser.parse(path)
+
+        node = p.objs[85]
+
+        plug = node.get_plug('DoubleSided')
+
+        self.assertEqual(plug.name, 'DoubleSided')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'SceneGraphNodePropsPlug')
+        self.assertEqual(plug.value, False)
 
 
 ###############################################################################

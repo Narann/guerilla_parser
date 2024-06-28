@@ -4,6 +4,14 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
+0.8.4 (2024 06 28)
+------------------
+
+* Fix wrong bool value retrieved when ``type.bool`` is ``"false"`` (Reported and fixed by Baptiste Fraboul).
+* Add support for ``ExpressionOutput`` plug type with ``LUIPSTypeAngle`` of type ``float``.
+* Add support for ``types.text`` plug type.
+
+
 0.8.3 (2022 03 10)
 ------------------
 
