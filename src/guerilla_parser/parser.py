@@ -436,6 +436,8 @@ class GuerillaParser(object):
                         param = self.__lua_dict_to_python(param)
                     elif plug_type == 'types.text':
                         value = value[1:-1].replace('\\010', '\n')
+                    elif plug_type == 'types.lightcategory':
+                        value = value[1:-1].replace('\\010', '\n')
                     else:
                         assert False, args
 
