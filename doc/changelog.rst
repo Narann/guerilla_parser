@@ -4,6 +4,15 @@ Changelog
 This changelog keep track of modifications. Keep an eye on it when changing
 versions. Some advices are often provided.
 
+0.8.5 (2025 05 25)
+------------------
+
+* Add support for ``types.lightcategory`` plug type, thanks to Julien Chastaing.
+* Add support for ``types.hmatte`` and ``types.hvisible`` plug type.
+* Fix wrong parsed values for ``types.hset`` and ``types.enum`` plug type.
+
+The last fix can break your code if you relies on such plug type.
+
 0.8.4 (2024 06 28)
 ------------------
 

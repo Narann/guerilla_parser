@@ -50,6 +50,7 @@ gprojects = [
     gproj_dir+'/2.3.0b16/texture_colorspace.gproject',
     gproj_dir+'/2.1.3/animmode_loop.gproject',
     gproj_dir+'/2.3.15/types_text.gproject',
+    gproj_dir+'/2.4.2/types_light_categories.gproject',
     ]
 
 all_gprojects = [f for f in default_gprojects]
@@ -671,6 +672,60 @@ class TestUniqueAttr(unittest.TestCase):
         self.assertEqual(plug.flag, 4)
         self.assertEqual(plug.type, 'SceneGraphNodePropsPlug')
         self.assertEqual(plug.value, False)
+
+    def test_types_light_categories(self):
+
+        path = gproj_dir + '/2.4.2/types_light_categories.gproject'
+
+        p = guerilla_parser.parse(path)
+
+        node = p.objs[40]
+
+        plug = node.get_plug('Category')
+
+        self.assertEqual(plug.name, 'Category')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'SceneGraphNodeRenderPropsPlug')
+        self.assertEqual(plug.value, 'FillLightTest')
+
+        plug = node.get_plug('HSet')
+
+        self.assertEqual(plug.name, 'HSet')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'HSetPlug')
+        self.assertEqual(plug.value, {'-PointLight',
+                                      'Diffuse',
+                                      'Reflection',
+                                      'Refraction',
+                                      'Shadows'})
+
+        plug = node.get_plug('ShadowSet')
+
+        self.assertEqual(plug.name, 'ShadowSet')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'HSetPlug')
+        self.assertEqual(plug.value, {'-PointLight', 'Shadows'})
+
+        plug = node.get_plug('HVisible')
+
+        self.assertEqual(plug.name, 'HVisible')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'HVisiblePlug')
+        self.assertEqual(plug.value, {"-visible:VisTest2", "visible:VisTest1"})
+
+        plug = node.get_plug('HMatte')
+
+        self.assertEqual(plug.name, 'HMatte')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'HMattePlug')
+        self.assertEqual(plug.value, {"matte:MatteTest1", "matte:MatteTest2"})
+
+        plug = node.get_plug('DistantMode')
+
+        self.assertEqual(plug.name, 'DistantMode')
+        self.assertEqual(plug.flag, 4)
+        self.assertEqual(plug.type, 'SceneGraphNodeRenderPropsPlug')
+        self.assertEqual(plug.value, "distant")
 
 
 ###############################################################################

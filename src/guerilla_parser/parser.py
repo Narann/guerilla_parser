@@ -76,8 +76,15 @@ parse_type_tuple = {
 # types being simple strings (often double quoted, but sometimes not)
 parse_type_string = {
     'types.string',
-    'types.set',
     'types.typeboxmode',
+}
+
+# types being set of strings.
+parse_type_set = {
+    'types.set',
+    'types.hset',
+    'types.hvisible',
+    'types.hmatte',
 }
 
 # floating value regex "4.64"
@@ -408,14 +415,15 @@ class GuerillaParser(object):
                         # "{1,0.5,0.5}" to (1,0.5,0.5)
                         value = eval(value.replace('{', '(').replace('}', ')'))
                     elif plug_type == 'types.enum':
-                        value = str(value)
+                        value = str(value[1:-1])
                         # '{{"Enabled","enable"},{"Disabled","disable"}}'
+                        # '{{"Distant","distant"},{"Directional","directional"}}'
                         # TODO
                         param = {}
-                    elif plug_type == 'types.hset':
+                    elif plug_type in parse_type_set:
                         # "Diffuse,-Reflection,-Refraction,Shadows"
                         value = set((s.replace(' ', '')
-                                     for s in value.split(',')))
+                                     for s in value[1:-1].split(',')))
                     elif plug_type == 'LUIPSTypeInt':
                         if value == 'nil':
                             # Tested in Guerilla 2.1, a 'nil' int value return
@@ -435,6 +443,8 @@ class GuerillaParser(object):
                         value = value[1:-1].split('\\010')
                         param = self.__lua_dict_to_python(param)
                     elif plug_type == 'types.text':
+                        value = value[1:-1].replace('\\010', '\n')
+                    elif plug_type == 'types.lightcategory':
                         value = value[1:-1].replace('\\010', '\n')
                     else:
                         assert False, args
